@@ -33,7 +33,7 @@ model_list:
   - model_name: claude-sonnet-5
     litellm_params:
       model: openai/moonshotai/kimi-k2.6
-      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 120
       stream_timeout: 120
@@ -122,6 +122,7 @@ litellm_settings:
   request_timeout: 120
   num_retries: 2
 YAML
+  sed -i "s/__CLOUDFLARE_ACCOUNT_ID__/${CLOUDFLARE_WORKER_AI_ACCOUNT_ID}/g" "$CONFIG"
   echo "  Created $CONFIG"
 fi
 
