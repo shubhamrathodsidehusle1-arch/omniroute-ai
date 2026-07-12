@@ -3,30 +3,730 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>mydata</title>
+  <title>mydata — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      background: #030508;
-      font-family: 'Inter', system-ui, sans-serif;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* ═══════════════════════════════════════════════════
+       GODMODE³ — cosmic dark dashboard
+       ═══════════════════════════════════════════════════ */
+
+    :root {
+      --bg-base:       #030508;
+      --bg-surface:    rgba(15, 20, 35, 0.70);
+      --bg-card:       rgba(10, 15, 28, 0.55);
+      --border-subtle: rgba(168, 85, 247, 0.18);
+      --border-glow:   rgba(168, 85, 247, 0.45);
+      --text-primary:  #eef0ff;
+      --text-secondary:#98a0c0;
+      --text-muted:    #5b6380;
+      --accent-violet: #a855f7;
+      --accent-blue:   #00d4ff;
+      --accent-orange: #f97316;
+      --accent-teal:   #22d3ee;
+      --accent-indigo: #818cf8;
     }
-    h1 {
-      font-size: clamp(3rem, 10vw, 8rem);
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-base);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 1.5rem 1rem 3rem;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(168,85,247,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 80% 20%, rgba(0,212,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 20% 80%, rgba(249,115,22,0.04) 0%, transparent 50%);
+    }
+
+    /* ── Background canvas ── */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Content stack ── */
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      width: 100%;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 2rem 1rem 1.8rem;
+      margin-bottom: 1rem;
+    }
+    .site-title {
+      font-size: clamp(2rem, 6vw, 3.2rem);
       font-weight: 800;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.02em;
       background: linear-gradient(135deg, #e0f0ff 0%, #a78bfa 45%, #60a5fa 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .site-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 0.35rem;
+      letter-spacing: 0.02em;
+    }
+    .header-meta {
+      display: flex;
+      justify-content: center;
+      gap: 1.8rem;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .header-meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .dot-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; margin-right: 0.15rem; animation: pulse-live 1.6s ease-in-out infinite; }
+    @keyframes pulse-live { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Service card grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .card-wrap {
+      perspective: 1200px;
+      opacity: 0;
+      transform: translateY(30px) rotateX(5deg);
+    }
+
+    .card {
+      position: relative;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1rem;
+      padding: 1.25rem 1.25rem 1.1rem;
+      min-height: 120px;
+      transition: transform 0.08s linear, background 0.35s ease, border-color 0.35s ease;
+      overflow: hidden;
+      cursor: default;
+    }
+    .card:hover {
+      background: rgba(18, 26, 45, 0.70);
+      border-color: var(--border-glow);
+    }
+
+    .card-glow {
+      position: absolute;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168,85,247,0.10) 0%, transparent 70%);
+      pointer-events: none;
+      transform: translate(-50%,-50%);
+      z-index: 0;
+      transition: left 0.08s linear, top 0.08s linear;
+    }
+
+    .card-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.3rem;
+    }
+    .card-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .card-name {
+      font-weight: 600;
+      font-size: 1.0rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card-status {
+      position: relative;
+      z-index: 1;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .card-status .label { color: var(--text-muted); margin-right: 0.4rem; }
+    .status-running { color: #22c55e; font-weight: 600; }
+    .status-stopped { color: #ef4444; font-weight: 600; }
+
+    .card-detail {
+      position: relative;
+      z-index: 1;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-url {
+      position: relative;
+      z-index: 1;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+    }
+    .card-url a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      word-break: break-all;
+    }
+    .card-url a:hover { text-decoration: underline; text-underline-offset: 2px; color: #7ee8ff; }
+
+    /* Status dot colors */
+    .dot-up   { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+    .dot-down { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(168,85,247,0.08);
+      margin-top: 1rem;
+    }
+    footer a { color: var(--accent-violet); text-decoration: none; }
+    footer a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ── Particles (CSS) ── */
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatUp linear infinite;
+      opacity: 0.5;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0)  scale(1);   opacity: 0; }
+      10%  { opacity: 0.5; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+    }
+
+    /* ── Responsive tweaks ── */
+    @media (max-width: 640px) {
+      .card-grid { grid-template-columns: 1fr; }
+      .header-meta { flex-wrap: wrap; gap: 0.7rem; }
+      body { padding: 0.8rem 0.5rem 2rem; }
+    }
+
+    /* ── Tooltip style (used by card, if any) ── */
+    .tt { position: relative; }
+    .tt:hover::after {
+      content: attr(data-tt);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #151b2e;
+      color: #c8d0f0;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      border: 1px solid rgba(168,85,247,0.2);
+    }
   </style>
 </head>
 <body>
-  <h1>mydata</h1>
+
+  <!-- ═══════════ Three.js Bg Canvas ═══════════ -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="content">
+
+    <!-- ═══════════ Header ═══════════ -->
+    <header>
+      <h1 class="site-title">mydata</h1>
+      <p class="site-subtitle">AI Agent Infrastructure Dashboard · docker-compose services</p>
+      <div class="header-meta">
+        <span><span class="dot-live"></span> All Systems</span>
+        <span id="live-clock">--:--:--</span>
+        <span>Ω GodMode³</span>
+      </div>
+    </header>
+
+    <!-- ═══════════ Service Cards ═══════════ -->
+    <div class="card-grid" id="card-grid">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- ═══════════ Footer ═══════════ -->
+    <footer>
+      <p>mydata · docker-compose stack · nginx + ngrok tunnel</p>
+    </footer>
+  </div>
+
+  <!-- ═══════════ Three.js CDN ═══════════ -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script>
+  // ═══════════════════════════════════════════════════
+  //  CARDS DATA
+  // ═══════════════════════════════════════════════════
+  const services = [
+    // ── Infrastructure ──
+    { icon:'I', iconBg:'#2563eb', name:'Server',          container:'server',         port:4000 },
+    { icon:'N', iconBg:'#10b981', name:'Nginx',           container:'nginx',          port:80 },
+    { icon:'n', iconBg:'#eab308', name:'Ngrok',           container:'ngrok',          port:4040 },
+    { icon:'P', iconBg:'#22d3ee', name:'Postgres',        container:'postgres',       port:5432 },
+    { icon:'R', iconBg:'#f97316', name:'Redis',           container:'redis',          port:6379 },
+    // ── AI / Agents ──
+    { icon:'A', iconBg:'#a855f7', name:'AutoGPT',         container:'autogpt',        port:3000 },
+    { icon:'B', iconBg:'#3b82f6', name:'BabyAGI',         container:'babyagi',        port:3000 },
+    { icon:'§', iconBg:'#8b5cf6', name:'AgentGPT',        container:'agentgpt',       port:3000 },
+    { icon:'G', iconBg:'#06b6d4', name:'GodMode',         container:'godmode',        port:3000 },
+    { icon:'S', iconBg:'#a78bfa', name:'SuperAGI',        container:'superagi',       port:3000 },
+    { icon:'C', iconBg:'#d946ef', name:'CrewAI',          container:'crewai',         port:3000 },
+    { icon:'L', iconBg:'#6366f1', name:'Lindy AI',        container:'lindy',          port:3000 },
+    // ── Memory / Stack ──
+    { icon:'M', iconBg:'#14b8a6', name:'MemGPT',          container:'memgpt',         port:8283 },
+    { icon:'V', iconBg:'#8b5cf6', name:'Vector DB (Qdrant)', container:'qdrant',      port:6333 },
+    { icon:'W', iconBg:'#f59e0b', name:'Weaviate',        container:'weaviate',       port:8080 },
+    { icon:'X', iconBg:'#00d4ff', name:'TimescaleDB',     container:'timescaledb',    port:5432 },
+    { icon:'O', iconBg:'#7c3aed', name:'Ollama',          container:'ollama',         port:11434 },
+    { icon:'K', iconBg:'#f97316', name:'Kafka',           container:'kafka',          port:9092 },
+    { icon:'Z', iconBg:'#e11d48', name:'Zookeeper',       container:'zookeeper',      port:2181 },
+    // ── Observability ──
+    { icon:'G', iconBg:'#84cc16', name:'Grafana',         container:'grafana',        port:3000 },
+    { icon:'P', iconBg:'#f43f5e', name:'Prometheus',      container:'prometheus',     port:9090 },
+    { icon:'L', iconBg:'#06b6d4', name:'Loki',            container:'loki',           port:3100 },
+    { icon:'T', iconBg:'#22c55e', name:'Tempo',           container:'tempo',          port:3200 },
+    // ── Admin / Frontend ──
+    { icon:'P', iconBg:'#0ea5e9', name:'pgAdmin',         container:'pgadmin',        port:5050 },
+    { icon:'R', iconBg:'#ef4444', name:'Redis Insight',   container:'redis-insight',  port:5540 },
+    { icon:'M', iconBg:'#a855f7', name':'Mailpit',          container:'mailpit',        port:8025 },
+    { icon:'U', iconBg:'#2563eb', name:'Uptime Kuma',     container:'uptime-kuma',    port:3001 },
+  ];
+
+  // ═══════════════════════════════════════════════════
+  //  RENDER CARDS
+  // ═══════════════════════════════════════════════════
+  (function() {
+    const grid = document.getElementById('card-grid');
+
+    services.forEach(s => {
+      const wrap = document.createElement('div');
+      wrap.className = 'card-wrap';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      // Glow follower
+      const glow = document.createElement('div');
+      glow.className = 'card-glow';
+      card.appendChild(glow);
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'card-header';
+
+      const icon = document.createElement('div');
+      icon.className = 'card-icon';
+      icon.style.background = s.iconBg;
+      icon.textContent = s.icon;
+
+      const name = document.createElement('span');
+      name.className = 'card-name';
+      name.textContent = s.name;
+
+      header.appendChild(icon);
+      header.appendChild(name);
+      card.appendChild(header);
+
+      // Status placeholder
+      const status = document.createElement('div');
+      status.className = 'card-status';
+      status.innerHTML = `<span class="label">container</span> ${s.container}`;
+      card.appendChild(status);
+
+      // Port
+      const detail = document.createElement('div');
+      detail.className = 'card-detail';
+      detail.textContent = `port ${s.port}`;
+      card.appendChild(detail);
+
+      // URL
+      const urlDiv = document.createElement('div');
+      urlDiv.className = 'card-url';
+      const a = document.createElement('a');
+      a.href = `http://localhost:${s.port}`;
+      a.target = '_blank';
+      a.textContent = `http://localhost:${s.port}`;
+      urlDiv.appendChild(a);
+      card.appendChild(urlDiv);
+
+      wrap.appendChild(card);
+      grid.appendChild(wrap);
+    });
+  })();
+  </script>
+
+  <!-- ═══════════ GSAP (entrance animations) ═══════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <!-- ═══════════ Stats.js (performance) ═══════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
+
+  <script type="module">
+  // ═══════════════════════════════════════════════════
+  //  THREE.JS — GodMode³ Background
+  // ═══════════════════════════════════════════════════
+  import * as THREE from 'three';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+
+  // ── Renderer ──
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ReinhardToneMapping;
+  renderer.toneMappingExposure = 1.4;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+  camera.position.set(0, 0, 80);
+
+  // ── Resize ──
+  let composer = null;
+  function resize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    if (composer) composer.setSize(w, h);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── Circular canvas texture ──
+  function makeCircleTex(size, cssColor) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const cx = size / 2, r = size / 2 - 1;
+    const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, r);
+    g.addColorStop(0,   cssColor);
+    g.addColorStop(0.5, cssColor);
+    g.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cx, r, 0, Math.PI * 2);
+    ctx.fill();
+    return new THREE.CanvasTexture(c);
+  }
+
+  // ── Stars ──
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 2200;
+  const starPos = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount * 3; i++) starPos[i] = (Math.random() - 0.5) * 600;
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({
+    color: 0xffffff, size: 1.2, transparent: true, opacity: 0.8,
+    sizeAttenuation: true, map: makeCircleTex(32, 'rgba(255,255,255,1)'),
+    alphaTest: 0.01, depthWrite: false
+  });
+  scene.add(new THREE.Points(starGeo, starMat));
+
+  // ── Nebula particles ──
+  function makeNebula(count, hex, cssColor, spread, size) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * spread;
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: hex, size, transparent: true, opacity: 0.6,
+      sizeAttenuation: true, blending: THREE.AdditiveBlending,
+      depthWrite: false, map: makeCircleTex(64, cssColor), alphaTest: 0.01
+    });
+    return new THREE.Points(geo, mat);
+  }
+
+  const nebulaViolet = makeNebula(700, 0xa855f7, 'rgba(168,85,247,1)',  300, 5.0);
+  const nebulaBlue   = makeNebula(550, 0x00d4ff, 'rgba(0,212,255,1)',   280, 4.0);
+  const nebulaOrange = makeNebula(320, 0xf97316, 'rgba(249,115,22,1)',  200, 3.0);
+  const nebulaTeal   = makeNebula(280, 0x22d3ee, 'rgba(34,211,238,1)',  260, 2.5);
+  scene.add(nebulaViolet, nebulaBlue, nebulaOrange, nebulaTeal);
+
+  // ── Flowing grid ──
+  const gridHelper = new THREE.GridHelper(300, 40, 0x1a3060, 0x0d1f3c);
+  gridHelper.position.y = -55;
+  scene.add(gridHelper);
+
+  // ── Torus rings ──
+  const torus = new THREE.Mesh(
+    new THREE.TorusGeometry(38, 1.0, 16, 120),
+    new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.55 })
+  );
+  torus.rotation.x = Math.PI / 2.4;
+  scene.add(torus);
+
+  const torus2 = new THREE.Mesh(
+    new THREE.TorusGeometry(55, 0.6, 8, 100),
+    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.4 })
+  );
+  torus2.rotation.x = Math.PI / 3;
+  torus2.rotation.z = Math.PI / 6;
+  scene.add(torus2);
+
+  const torus3 = new THREE.Mesh(
+    new THREE.TorusGeometry(28, 0.6, 8, 80),
+    new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.45 })
+  );
+  torus3.rotation.x = Math.PI / 1.8;
+  torus3.rotation.z = Math.PI / 4;
+  scene.add(torus3);
+
+  // ── Icosahedron wire core ──
+  const ico = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(18, 1),
+    new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true, transparent: true, opacity: 0.25 })
+  );
+  scene.add(ico);
+
+  // ── Orbiting bright orbs ──
+  const orbColors = [0xa855f7, 0x00d4ff, 0xf97316, 0x22d3ee];
+  const orbs = orbColors.map((col, i) => {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(1.2, 8, 8),
+      new THREE.MeshBasicMaterial({ color: col })
+    );
+    scene.add(m);
+    return { mesh: m, phase: (i / orbColors.length) * Math.PI * 2, radius: 42 + i * 5 };
+  });
+
+  // ── EffectComposer + UnrealBloomPass ──
+  try {
+    const renderPass = new THREE.RenderPass(scene, camera);
+    const bloomPass  = new THREE.UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.6,   // strength
+      0.55,  // radius
+      0.1    // threshold
+    );
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(renderPass);
+    composer.addPass(bloomPass);
+  } catch(e) {
+    console.warn('Bloom fallback', e);
+  }
+
+  // ── Mouse parallax ──
+  let mx = 0, my = 0;
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  // ── Animation loop ──
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.003;
+
+    camera.position.x += (mx * 12 - camera.position.x) * 0.025;
+    camera.position.y += (-my * 8  - camera.position.y) * 0.025;
+    camera.lookAt(0, 0, 0);
+
+    nebulaViolet.rotation.y = t * 0.12;
+    nebulaBlue.rotation.y   = -t * 0.08;
+    nebulaOrange.rotation.z = t * 0.06;
+    nebulaTeal.rotation.x   = t * 0.05;
+
+    torus.rotation.z  = t * 0.18;
+    torus2.rotation.y = t * 0.10;
+    torus3.rotation.z = -t * 0.14;
+
+    ico.rotation.x = t * 0.22;
+    ico.rotation.y = t * 0.18;
+
+    gridHelper.position.z = (t * 8) % 7.5;
+
+    orbs.forEach(o => {
+      o.mesh.position.x = Math.cos(t * 0.5 + o.phase) * o.radius;
+      o.mesh.position.y = Math.sin(t * 0.3 + o.phase) * 15;
+      o.mesh.position.z = Math.sin(t * 0.5 + o.phase) * o.radius;
+    });
+
+    if (composer) composer.render();
+    else renderer.render(scene, camera);
+  }
+  animate();
+  </script>
+
+  <script>
+  // ═══════════════════════════════════════════════════
+  //  LIVE CLOCK
+  // ═══════════════════════════════════════════════════
+  (function() {
+    const el = document.getElementById('live-clock');
+    if (!el) return;
+    function tick() {
+      const n = new Date();
+      el.textContent = n.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+
+  // ═══════════════════════════════════════════════════
+  //  ENTRANCE ANIMATIONS (GSAP)
+  // ═══════════════════════════════════════════════════
+  (function() {
+    if (typeof gsap === 'undefined') return;
+    const wraps = document.querySelectorAll('.card-wrap');
+
+    wraps.forEach((wrap, i) => {
+      gsap.to(wrap, {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 0.85,
+        delay: 0.2 + i * 0.12,
+        ease: 'power3.out',
+      });
+    });
+
+    wraps.forEach((wrap, i) => {
+      const phase = (i / wraps.length) * Math.PI * 2;
+      gsap.to(wrap, {
+        y: `+=${6 + (i % 3) * 2}`,
+        duration: 3.5 + i * 0.4,
+        delay: 1.5 + i * 0.15,
+        yoyo: true,
+        repeat: -1,
+        ease: 'sine.inOut',
+      });
+    });
+  })();
+
+  // ═══════════════════════════════════════════════════
+  //  3D CARD TILT
+  // ═══════════════════════════════════════════════════
+  (function() {
+    const cards = document.querySelectorAll('.card');
+    const MAX_TILT = 14;
+    const MAX_TRANS = 18;
+
+    cards.forEach(card => {
+      const glowEl = card.querySelector('.card-glow');
+
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width  / 2;
+        const cy = rect.top  + rect.height / 2;
+        const dx = (e.clientX - cx) / (rect.width  / 2);
+        const dy = (e.clientY - cy) / (rect.height / 2);
+
+        const rotX = -dy * MAX_TILT;
+        const rotY =  dx * MAX_TILT;
+
+        card.style.transform = `
+          perspective(900px)
+          rotateX(${rotX}deg)
+          rotateY(${rotY}deg)
+          translateZ(${MAX_TRANS}px)
+          scale3d(1.025,1.025,1.025)
+        `;
+        card.style.transition = 'transform 0.08s linear, background 0.35s ease, border-color 0.35s ease';
+
+        if (glowEl) {
+          const gx = e.clientX - rect.left;
+          const gy = e.clientY - rect.top;
+          glowEl.style.left = gx + 'px';
+          glowEl.style.top  = gy + 'px';
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+        card.style.transition = 'transform 0.55s cubic-bezier(.34,1.56,.64,1), background 0.35s ease, border-color 0.35s ease';
+      });
+
+      card.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        const rect = card.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) * 2;
+        ripple.style.cssText = `
+          position:absolute;
+          width:${size}px;height:${size}px;
+          left:${e.clientX - rect.left - size/2}px;
+          top:${e.clientY - rect.top - size/2}px;
+          background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 60%);
+          border-radius:50%;
+          pointer-events:none;
+          z-index:10;
+          animation:rippleAnim 0.6s ease-out forwards;
+        `;
+        card.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 700);
+      });
+    });
+
+    const style = document.createElement('style');
+    style.textContent = '@keyframes rippleAnim{from{transform:scale(0);opacity:1}to{transform:scale(1);opacity:0}}';
+    document.head.appendChild(style);
+  })();
+
+  // ═══════════════════════════════════════════════════
+  //  CSS FLOATING PARTICLES
+  // ═══════════════════════════════════════════════════
+  (function() {
+    const colors = ['rgba(168,85,247,0.6)','rgba(0,212,255,0.5)','rgba(249,115,22,0.5)','rgba(34,211,238,0.45)','rgba(99,102,241,0.5)'];
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 2 + Math.random() * 4;
+      p.style.cssText = `
+        width:${size}px;height:${size}px;
+        left:${Math.random()*100}vw;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-duration:${12 + Math.random()*20}s;
+        animation-delay:${-Math.random()*20}s;
+        filter:blur(${size > 4 ? 2 : 0}px);
+      `;
+      document.body.appendChild(p);
+    }
+  })();
+  </script>
 </body>
 </html>
