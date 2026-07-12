@@ -3,6 +3,7 @@ set -e
 
 OMNIROUTE_URL="${OMNIROUTE_URL:-http://omniroute:20128}"
 OMNI_ROUTE_API_KEY="${OMNI_ROUTE_API_KEY}"
+GW_TOKEN="${OPENCLAW_GATEWAY_TOKEN:-openclaw}"
 
 mkdir -p /root/.openclaw /data
 
@@ -14,29 +15,38 @@ fi
 export OPENAI_API_KEY="${OPENAI_API_KEY:-${OMNI_ROUTE_API_KEY}}"
 export OPENAI_BASE_URL="${OMNIROUTE_URL}/v1"
 
-openclaw setup 2>/dev/null || true
-openclaw config set gateway.mode local 2>/dev/null || true
-openclaw config set gateway.port 18789 2>/dev/null || true
-openclaw config set gateway.bind auto 2>/dev/null || true
-openclaw config set gateway.controlUi.dangerouslyDisableDeviceAuth true 2>/dev/null || true
-openclaw config set gateway.controlUi.allowedOrigins '["*"]' 2>/dev/null || true
-openclaw config set gateway.trustedProxies '["0.0.0.0/0"]' 2>/dev/null || true
+timeout 10 openclaw setup 2>/dev/null || true
 
-openclaw config set models.providers.anthropic.api anthropic-messages 2>/dev/null || true
-openclaw config set models.providers.anthropic.baseUrl "${OMNIROUTE_URL}" 2>/dev/null || true
-openclaw config set models.providers.anthropic.apiKey "${OMNI_ROUTE_API_KEY}" 2>/dev/null || true
-openclaw config set models.providers.kg.api "openai-completions" 2>/dev/null || true
-openclaw config set models.providers.kg.baseUrl "${OMNIROUTE_URL}" 2>/dev/null || true
-openclaw config set models.providers.kg.apiKey "${OMNI_ROUTE_API_KEY}" 2>/dev/null || true
-
-openclaw config set models.providers.or.baseUrl "${OMNIROUTE_URL}" 2>/dev/null || true
-openclaw config set models.providers.or.apiKey "${OMNI_ROUTE_API_KEY}" 2>/dev/null || true
-openclaw config set agents.defaults.model.primary "or/auto/best-free" 2>/dev/null || true
+# Inject runtime config via jq (avoids interactive openclaw prompts)
+jq --arg url "$OMNIROUTE_URL" --arg key "$OMNI_ROUTE_API_KEY" --arg token "$GW_TOKEN" \
+  '.gateway.mode = "local"
+   | .gateway.port = 18789
+   | .gateway.bind = "auto"
+   | .gateway.auth.mode = "token"
+   | .gateway.auth.token = $token
+   | .gateway.controlUi.dangerouslyDisableDeviceAuth = true
+   | .gateway.controlUi.allowedOrigins = ["*"]
+   | .gateway.trustedProxies = ["0.0.0.0/0"]
+   | .models.providers.anthropic.api = "anthropic-messages"
+   | .models.providers.anthropic.baseUrl = $url
+   | .models.providers.anthropic.apiKey = $key
+   | .models.providers.kg.api = "openai-completions"
+   | .models.providers.kg.baseUrl = $url
+   | .models.providers.kg.apiKey = $key
+   | .models.providers.or.baseUrl = $url
+   | .models.providers.or.apiKey = $key
+   | .agents.defaults.model.primary = "or/auto/best-free"' \
+  /root/.openclaw/openclaw.json > /tmp/openclaw.json \
+  && mv /tmp/openclaw.json /root/.openclaw/openclaw.json
 
 if [ -n "$OPENCLAW_TELEGRAM_BOT_TOKEN" ]; then
-  if ! openclaw channels list 2>/dev/null | grep -q "telegram"; then
+  CURRENT_TOKEN=$(jq -r '.channels.telegram.botToken // ""' /root/.openclaw/openclaw.json)
+  if [ "$CURRENT_TOKEN" != "$OPENCLAW_TELEGRAM_BOT_TOKEN" ]; then
     echo "Configuring Telegram channel..."
-    timeout 30 openclaw channels add --channel telegram --token "$OPENCLAW_TELEGRAM_BOT_TOKEN" 2>/dev/null || true
+    jq --arg token "$OPENCLAW_TELEGRAM_BOT_TOKEN" \
+      '.channels.telegram.enabled = true | .channels.telegram.botToken = $token' \
+      /root/.openclaw/openclaw.json > /tmp/openclaw.json \
+      && mv /tmp/openclaw.json /root/.openclaw/openclaw.json
   fi
 fi
 

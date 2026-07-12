@@ -11,6 +11,10 @@
     "mode": "local",
     "port": 18789,
     "bind": "auto",
+    "auth": {
+      "mode": "token",
+      "token": ""
+    },
     "trustedProxies": ["0.0.0.0/0"],
     "controlUi": {
       "dangerouslyDisableDeviceAuth": true,
