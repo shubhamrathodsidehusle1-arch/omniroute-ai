@@ -1,4 +1,5 @@
 #!/bin/sh
+# NOTE: This file is unused — entrypoint-combined.sh is the active entrypoint
 set -e
 
 OMNIROUTE_URL="${OMNIROUTE_URL:-http://omniroute:20128}"

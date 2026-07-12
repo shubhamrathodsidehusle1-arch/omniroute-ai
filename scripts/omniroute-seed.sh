@@ -70,7 +70,7 @@ seed_providers() {
   # OpenRouter (OPENROUTER_API_KEY_0..9)
   OR_BASE="https://openrouter.ai/api/v1"
   for i in $(seq 0 9); do
-    eval "key=\$OPENROUTER_API_KEY_$i"
+    var="OPENROUTER_API_KEY_$i"; key="${!var}"
     [ -z "$key" ] && continue
     seed_single "seed-openrouter-$i" "openrouter" "OpenRouter-$i" "$key" "$OR_BASE"
   done
@@ -78,7 +78,7 @@ seed_providers() {
   # KiloCode (KILO_API_KEY_1..3)
   KC_BASE="https://api.kilo.ai/api/gateway"
   for i in $(seq 1 3); do
-    eval "key=\$KILO_API_KEY_$i"
+    var="KILO_API_KEY_$i"; key="${!var}"
     [ -z "$key" ] && continue
     seed_single "seed-kilo-gateway-$i" "kilo-gateway" "KiloCode-$i" "$key" "$KC_BASE"
   done

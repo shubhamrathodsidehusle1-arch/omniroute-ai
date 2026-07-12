@@ -71,6 +71,6 @@
     }
   },
   "commands": {
-    "ownerAllowFrom": ["telegram:7500771474"]
+    "ownerAllowFrom": []
   }
 }

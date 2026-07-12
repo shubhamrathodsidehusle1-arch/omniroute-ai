@@ -16,19 +16,13 @@ def get_desired():
     return {k: bool(v) for k, v in data.items()}
 
 
-def compose_ps():
+def container_labels():
+    """Return set of docker-compose service names for running containers."""
     result = subprocess.run(
-        ['docker', 'compose', 'ps', '--format', '{{.Name}}\t{{.State}}'],
+        ['docker', 'ps', '--format', '{{.Label "com.docker.compose.service"}}', '--filter', 'status=running'],
         capture_output=True, text=True, cwd=COMPOSE_DIR
     )
-    running = set()
-    for line in result.stdout.strip().split('\n'):
-        if not line:
-            continue
-        parts = line.split('\t')
-        if len(parts) == 2 and parts[1] == 'running':
-            running.add(parts[0])
-    return running
+    return set(line.strip() for line in result.stdout.split('\n') if line.strip())
 
 
 def main():
@@ -42,17 +36,16 @@ def main():
             if mtime > last_mtime:
                 last_mtime = mtime
                 desired = get_desired()
-                current = compose_ps()
+                current = container_labels()
                 for service, enabled in desired.items():
-                    should_run = enabled
-                    is_running = f'{COMPOSE_DIR.split("/")[-1]}-{service}-1' in current or service in current
-                    if should_run and not is_running:
+                    is_running = service in current
+                    if enabled and not is_running:
                         print(f'[ctrl] starting {service}...', flush=True)
                         subprocess.run(
                             ['docker', 'compose', 'up', '-d', '--no-recreate', service],
                             cwd=COMPOSE_DIR, capture_output=True
                         )
-                    elif not should_run and is_running:
+                    elif not enabled and is_running:
                         print(f'[ctrl] stopping {service}...', flush=True)
                         subprocess.run(
                             ['docker', 'compose', 'stop', service],

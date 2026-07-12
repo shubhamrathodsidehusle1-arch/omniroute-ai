@@ -14,7 +14,7 @@ AI agent infrastructure stack — a docker-compose deployment of agent orchestra
 | **Paperclip** | `3100` | AI task orchestration — agent management, tasks, routines, governance |
 | **Qdrant** | `6333` | High-performance vector search engine for agent memory and RAG |
 | **Prometheus** | `9090` | Time-series monitoring and alerting |
-| **Grafana** | `3000` | Observability dashboards (admin/admin) |
+| **Grafana** | `3000` | Observability dashboards |
 | **OmniRoute** | `20128` | AI provider aggregation gateway (231+ providers, MCP/A2A) |
 | **cAdvisor** | `8081` | Container resource metrics |
 | **node-exporter** | `9100` | Host metrics |

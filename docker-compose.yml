@@ -297,10 +297,10 @@ services:
       - OPENAI_BASE_URL=http://omniroute:20128/v1
       - OPENAI_API_KEY=${OMNI_ROUTE_API_KEY}
       - HERMES_URL=http://hermes-agent:9119
-    command: >
+    command: |
       sh -c "
-        mkdir -p /paperclip/instances/default/db && chmod 0700 /paperclip/instances/default/db
-        ln -sf /app/server/src/built-ins /app/server/dist/built-ins
+        mkdir -p /paperclip/instances/default/db && chmod 0700 /paperclip/instances/default/db &&
+        ln -sf /app/server/src/built-ins /app/server/dist/built-ins &&
         node --import /app/server/node_modules/tsx/dist/loader.mjs /app/server/dist/index.js
       "
     networks:
