@@ -8,7 +8,7 @@ model_list:
   - model_name: claude-sonnet-4-6
     litellm_params:
       model: openai/@cf/meta/llama-3.3-70b-instruct-fp8-fast
-      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 120
       stream_timeout: 120
@@ -128,7 +128,7 @@ model_list:
   - model_name: claude-haiku-4-5-20251001
     litellm_params:
       model: openai/@cf/meta/llama-3.2-3b-instruct
-      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 60
       stream_timeout: 60
@@ -137,7 +137,7 @@ model_list:
   - model_name: claude-haiku-4-5-20251001
     litellm_params:
       model: openai/@cf/mistral/mistral-7b-instruct-v0.1
-      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 60
       stream_timeout: 60
@@ -166,7 +166,7 @@ model_list:
   - model_name: claude-opus-4-9-20260710
     litellm_params:
       model: openai/@cf/meta/llama-3.3-70b-instruct-fp8-fast
-      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 120
       stream_timeout: 120
@@ -238,7 +238,7 @@ model_list:
   - model_name: claude-sonnet-4-7-20260710
     litellm_params:
       model: openai/@cf/meta/llama-3.2-3b-instruct
-      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 60
       stream_timeout: 60
@@ -283,7 +283,7 @@ model_list:
   - model_name: text-embedding-3-large
     litellm_params:
       model: openai/@cf/baai/bge-base-en-v1.5
-      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 60
       mode: embedding
