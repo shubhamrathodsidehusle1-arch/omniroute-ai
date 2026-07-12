@@ -2,7 +2,6 @@
   "postgres": true,
   "omniroute-redis": true,
   "nginx": true,
-  "ngrok": true,
   "openclaw": true,
   "hermes": true,
   "paperclip": true,

@@ -43,7 +43,7 @@ model_list:
     litellm_params:
       model: openai/kilo-auto/free
       api_base: https://api.kilo.ai/api/gateway
-      api_key: os.environ/KILO_API_KEY
+      api_key: os.environ/KILO_API_KEY_1
       timeout: 90
       stream_timeout: 90
       rpm: 40
@@ -133,12 +133,17 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 
 ENV_JSON="${SCRIPT_DIR}/env.json"
-echo "{" > "$ENV_JSON"
-while IFS='=' read -r key val; do
-  [[ -z "$key" || "$key" == "#"* ]] && continue
-  printf '  "%s": "%s",\n' "$key" "$val"
-done < "${SCRIPT_DIR}/.env" | sed '$ s/,$//' >> "$ENV_JSON"
-echo "}" >> "$ENV_JSON"
+jq -R 'split("\n") | map(select(length > 0 and startswith("#") | not)) | map(capture("^(?<key>[^=]+)=(?<val>.*)$")) | from_entries' \
+  "${SCRIPT_DIR}/.env" > "$ENV_JSON" 2>/dev/null || {
+  echo "  WARNING: jq not available, writing env.json as raw text"
+  echo "{" > "$ENV_JSON"
+  while IFS='=' read -r key val; do
+    [[ -z "$key" || "$key" == "#"* ]] && continue
+    printf '  "%s": "%s",\n' "$key" "$val"
+  done < "${SCRIPT_DIR}/.env" | sed '$ s/,$//' >> "$ENV_JSON"
+  echo "}" >> "$ENV_JSON"
+}
+chmod 600 "$ENV_JSON"
 echo "  Wrote $ENV_JSON"
 
 echo "Starting Claude stack..."

@@ -86,7 +86,7 @@ services:
       - OMNI_ROUTE_API_KEY=${OMNI_ROUTE_API_KEY}
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
 
-    command: sh /entrypoint-combined.sh
+    command: sh /entrypoint-openclaw.sh
     depends_on:
       permissions-init:
         condition: service_completed_successfully
@@ -150,27 +150,18 @@ services:
     networks:
       - claws-network
 
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: ngrok
-    restart: unless-stopped
-    environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-    command: http nginx:80 --url=${NGROK_URL} --log=stdout
-    depends_on:
-      nginx:
-        condition: service_started
-    networks:
-      - claws-network
-
   service-controller:
     build:
       context: .
       dockerfile: Dockerfile.service-controller
     container_name: service-controller
     restart: unless-stopped
+    environment:
+      - COMPOSE_PROJECT_NAME=omniroute-ai
     volumes:
       - ./service_run.json:/workspace/service_run.json:ro
+      - ./docker-compose.yml:/workspace/docker-compose.yml:ro
+      - ./.env:/workspace/.env:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       permissions-init:
@@ -627,7 +618,6 @@ services:
       - PORT=20128
       - REDIS_URL=redis://omniroute-redis:6379
       - OMNIROUTE_BASE_PATH=/omniroute
-      - OMNIROUTE_PUBLIC_URL=${NGROK_URL}
     healthcheck:
       test: ["CMD", "node", "-e", "http.get('http://localhost:20128/v1/models',r=>process.exit(r.statusCode===200?0:1))"]
       interval: 5s

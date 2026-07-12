@@ -62,6 +62,6 @@ fi
 
 cd /data
 echo "Starting Command Center on http://0.0.0.0:3333"
-PORT=3333 DASHBOARD_AUTH_MODE=none node lib/server.js &
+PORT=3333 node lib/server.js &
 
 wait

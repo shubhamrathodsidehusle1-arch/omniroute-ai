@@ -25,11 +25,13 @@ else
 
   for PID in $CLAUDE_PIDS; do
 
-    kill -9 "$PID" >/dev/null 2>&1 || true
+    kill "$PID" >/dev/null 2>&1 || true
+    sleep 0.3
+    if kill -0 "$PID" 2>/dev/null; then
+      kill -9 "$PID" >/dev/null 2>&1 || true
+    fi
 
-    echo "  Killed PID $PID"
-
-    sleep 0.5
+    echo "  Stopped PID $PID"
 
   done
 
@@ -57,11 +59,13 @@ else
 
   for PID in $LITELLM_4001_PIDS; do
 
-    kill -9 "$PID" >/dev/null 2>&1 || true
+    kill "$PID" >/dev/null 2>&1 || true
+    sleep 0.3
+    if kill -0 "$PID" 2>/dev/null; then
+      kill -9 "$PID" >/dev/null 2>&1 || true
+    fi
 
-    echo "  Killed PID $PID"
-
-    sleep 0.5
+    echo "  Stopped PID $PID"
 
   done
 
@@ -87,7 +91,11 @@ else
 
   for PID in $PORT_PIDS; do
 
-    kill -9 "$PID" >/dev/null 2>&1 || true
+    kill "$PID" >/dev/null 2>&1 || true
+    sleep 0.3
+    if kill -0 "$PID" 2>/dev/null; then
+      kill -9 "$PID" >/dev/null 2>&1 || true
+    fi
 
     echo "  Freed PID $PID from port 4001."
 

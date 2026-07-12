@@ -1,3 +1,4 @@
+# WARNING: auth is disabled — if this port is exposed externally, anyone can read all logs
 auth_enabled: false
 
 server:

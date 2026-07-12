@@ -17,22 +17,7 @@ wait_for_db() {
   exit 1
 }
 
-encrypt_key() {
-  local key="$1"
-  node -e "
-    const crypto = require('crypto');
-    const storageKey = require('fs').readFileSync('/app/data/server.env','utf8')
-      .split('\n').find(l=>l.startsWith('STORAGE_ENCRYPTION_KEY='))
-      .split('=')[1].trim();
-    const salt = crypto.createHash('sha256').update(storageKey).digest('hex').slice(0,16);
-    const derivedKey = crypto.scryptSync(storageKey, salt, 32);
-    const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv('aes-256-gcm', derivedKey, iv);
-    const enc = Buffer.concat([cipher.update('$key','utf8'), cipher.final()]);
-    const tag = cipher.getAuthTag();
-    console.log('enc:v1:' + iv.toString('hex') + ':' + enc.toString('hex') + ':' + tag.toString('hex'));
-  "
-}
+sqlesc() { printf "%s" "$1" | sed "s/'/''/g"; }
 
 seed_if_missing() {
   local id="$1"
@@ -45,8 +30,6 @@ seed_if_missing() {
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 COLS="id,provider,auth_type,name,priority,is_active,test_status,proxy_enabled,per_key_proxy_enabled,provider_specific_data,access_token,created_at,updated_at"
 BASE="1,1,'active',1,0"
-
-sqlesc() { printf "%s" "$1" | sed "s/'/''/g"; }
 
 seed_single() {
   local id="$1" provider="$2" name="$3" key="$4" extra="$5"
