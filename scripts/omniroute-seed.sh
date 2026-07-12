@@ -48,11 +48,10 @@ BASE="1,1,'active',1,0"
 seed_single() {
   local id="$1" provider="$2" name="$3" key="$4" extra="$5"
   seed_if_missing "$id" || return 0
-  TOKEN=$(encrypt_key "$key")
   JSON="{\"name\":\"${name}\",\"apiKey\":\"${key}\",\"baseUrl\":\"${extra}\""
   [ -n "$6" ] && JSON="$JSON,\"accountId\":\"$6\",\"region\":\"us-east-1\""
   JSON="$JSON,\"apiKeyHealth\":{}}"
-  sqlite3 "$DB" "INSERT INTO provider_connections ($COLS) VALUES ('$id','$provider','apikey','$name',$BASE,'$JSON','$TOKEN','$NOW','$NOW');" && echo "  + $name"
+  sqlite3 "$DB" "INSERT INTO provider_connections ($COLS) VALUES ('$id','$provider','apikey','$name',$BASE,'$JSON','$key','$NOW','$NOW');" && echo "  + $name"
 }
 
 seed_providers() {
@@ -68,22 +67,16 @@ seed_providers() {
     seed_single "seed-nvidia" "nvidia" "NVIDIA NIM" "$NVIDIA_API_KEY" "https://integrate.api.nvidia.com/v1"
   fi
 
-  # OpenRouter (OPENROUTER_API_KEY + OPENROUTER_API_KEY_0..9)
+  # OpenRouter (OPENROUTER_API_KEY_0..9)
   OR_BASE="https://openrouter.ai/api/v1"
-  if [ -n "$OPENROUTER_API_KEY" ]; then
-    seed_single "seed-openrouter" "openrouter" "OpenRouter" "$OPENROUTER_API_KEY" "$OR_BASE"
-  fi
   for i in $(seq 0 9); do
     eval "key=\$OPENROUTER_API_KEY_$i"
     [ -z "$key" ] && continue
     seed_single "seed-openrouter-$i" "openrouter" "OpenRouter-$i" "$key" "$OR_BASE"
   done
 
-  # KiloCode (KILOCODE_API_KEY + KILO_API_KEY_1..3)
+  # KiloCode (KILO_API_KEY_1..3)
   KC_BASE="https://api.kilo.ai/api/gateway"
-  if [ -n "$KILOCODE_API_KEY" ]; then
-    seed_single "seed-kilo-gateway" "kilo-gateway" "KiloCode" "$KILOCODE_API_KEY" "$KC_BASE"
-  fi
   for i in $(seq 1 3); do
     eval "key=\$KILO_API_KEY_$i"
     [ -z "$key" ] && continue

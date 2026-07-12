@@ -504,7 +504,7 @@
       <div class="status-bar">
         <span class="status-dot">All Services Active</span>
         <span class="status-dot" style="color:var(--neon-blue);border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.06)">ngrok tunnel</span>
-        <span class="status-dot" style="color:var(--neon-amber);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.06)">13 services</span>
+        <span class="status-dot" style="color:var(--neon-amber);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.06)">17 services</span>
       </div>
     </header>
 
@@ -720,7 +720,7 @@
         --card-port-hover: rgba(99,102,241,0.16);
         --card-glow-color: rgba(99,102,241,0.14);
       ">
-        <a class="card" href="http://localhost:3100/" target="_blank" rel="noopener">
+      <a class="card" href="http://localhost:3106/" target="_blank" rel="noopener">
           <div class="card-glow"></div>
           <div class="card-icon">
             <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -904,6 +904,144 @@
 
 
 
+    </div>
+
+    <div class="section-label">New Additions</div>
+
+    <!-- ── Dify ── -->
+    <div class="card-wrap" style="
+      --card-accent: linear-gradient(90deg,#10b981,#059669);
+      --card-accent-border: rgba(16,185,129,0.35);
+      --card-accent-text: #34d399;
+      --card-icon-bg: rgba(16,185,129,0.12);
+      --card-port-bg: rgba(16,185,129,0.08);
+      --card-port-hover: rgba(16,185,129,0.18);
+      --card-glow-color: rgba(16,185,129,0.18);
+    ">
+      <a class="card" href="http://localhost:7080/" target="_blank" rel="noopener">
+        <div class="card-glow"></div>
+        <div class="card-icon">
+          <svg viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="9" stroke="rgba(16,185,129,0.8)" stroke-width="1.5"/><path d="M8 13l3 3 7-7" stroke="rgba(16,185,129,0.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 13 13" fill="none"><path d="M2.5 10.5L10.5 2.5M10.5 2.5H5.5M10.5 2.5V7.5" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Dify</div>
+          <div class="card-desc">Visual LLM application builder. Build AI apps with RAG pipelines, agent workflows, custom tools, and multi-LLM orchestration.</div>
+        </div>
+        <div class="card-ports">
+          <a class="port-badge" href="http://localhost:7080/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            :7080 Web UI
+          </a>
+          <a class="port-badge" href="http://localhost:5001/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 11 11" fill="none"><path d="M2 5.5h7M6.5 3 9 5.5 6.5 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            :5001 API
+          </a>
+        </div>
+        <div class="card-image-tag">langgenius/dify-api:1.1.3 · admin/admin</div>
+      </a>
+    </div>
+
+    <!-- ── Langfuse ── -->
+    <div class="card-wrap" style="
+      --card-accent: linear-gradient(90deg,#8b5cf6,#a78bfa);
+      --card-accent-border: rgba(139,92,246,0.35);
+      --card-accent-text: #a78bfa;
+      --card-icon-bg: rgba(139,92,246,0.12);
+      --card-port-bg: rgba(139,92,246,0.08);
+      --card-port-hover: rgba(139,92,246,0.18);
+      --card-glow-color: rgba(139,92,246,0.18);
+    ">
+      <a class="card" href="http://localhost:4000/" target="_blank" rel="noopener">
+        <div class="card-glow"></div>
+        <div class="card-icon">
+          <svg viewBox="0 0 26 26" fill="none"><path d="M13 3L3 13l10 10 10-10L13 3z" fill="rgba(139,92,246,0.2)" stroke="rgba(139,92,246,0.9)" stroke-width="1.3"/><path d="M13 7l-4 4 4 4 4-4-4-4z" fill="rgba(139,92,246,0.4)"/></svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 13 13" fill="none"><path d="M2.5 10.5L10.5 2.5M10.5 2.5H5.5M10.5 2.5V7.5" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Langfuse</div>
+          <div class="card-desc">LLM observability platform. Trace every LLM call, track token usage, latency, cost per model and provider across the entire stack.</div>
+        </div>
+        <div class="card-ports">
+          <a class="port-badge" href="http://localhost:4000/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            :4000 Dashboard
+          </a>
+        </div>
+        <div class="card-image-tag">langfuse/langfuse:latest</div>
+      </a>
+    </div>
+
+    <!-- ── Uptime Kuma ── -->
+    <div class="card-wrap" style="
+      --card-accent: linear-gradient(90deg,#f43f5e,#e11d48);
+      --card-accent-border: rgba(244,63,94,0.35);
+      --card-accent-text: #fb7185;
+      --card-icon-bg: rgba(244,63,94,0.12);
+      --card-port-bg: rgba(244,63,94,0.08);
+      --card-port-hover: rgba(244,63,94,0.18);
+      --card-glow-color: rgba(244,63,94,0.18);
+    ">
+      <a class="card" href="http://localhost:3001/" target="_blank" rel="noopener">
+        <div class="card-glow"></div>
+        <div class="card-icon">
+          <svg viewBox="0 0 26 26" fill="none"><path d="M13 4L4 13l3 3 6-6 6 6 3-3-9-9z" fill="rgba(244,63,94,0.85)" stroke="rgba(244,63,94,0.4)" stroke-width="0.8"/><path d="M13 10l-5 5 2 2 3-3 3 3 2-2-5-5z" fill="rgba(244,63,94,0.5)"/></svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 13 13" fill="none"><path d="M2.5 10.5L10.5 2.5M10.5 2.5H5.5M10.5 2.5V7.5" stroke="#fb7185" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Uptime Kuma</div>
+          <div class="card-desc">Service uptime monitoring. Ping every endpoint, alert on failures, track response times and certificate expiry across the stack.</div>
+        </div>
+        <div class="card-ports">
+          <a class="port-badge" href="http://localhost:3001/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            :3001 Dashboard
+          </a>
+        </div>
+        <div class="card-image-tag">louislam/uptime-kuma:latest</div>
+      </a>
+    </div>
+
+    <!-- ── Loki ── -->
+    <div class="card-wrap" style="
+      --card-accent: linear-gradient(90deg,#06b6d4,#22d3ee);
+      --card-accent-border: rgba(6,182,212,0.35);
+      --card-accent-text: #22d3ee;
+      --card-icon-bg: rgba(6,182,212,0.12);
+      --card-port-bg: rgba(6,182,212,0.08);
+      --card-port-hover: rgba(6,182,212,0.18);
+      --card-glow-color: rgba(6,182,212,0.18);
+    ">
+      <a class="card" href="http://localhost:3100/" target="_blank" rel="noopener">
+        <div class="card-glow"></div>
+        <div class="card-icon">
+          <svg viewBox="0 0 26 26" fill="none"><rect x="4" y="6" width="18" height="3" rx="1.5" fill="rgba(6,182,212,0.9)"/><rect x="4" y="11.5" width="14" height="3" rx="1.5" fill="rgba(6,182,212,0.7)"/><rect x="4" y="17" width="10" height="3" rx="1.5" fill="rgba(6,182,212,0.5)"/></svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 13 13" fill="none"><path d="M2.5 10.5L10.5 2.5M10.5 2.5H5.5M10.5 2.5V7.5" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="card-header">
+          <div class="card-name">Loki</div>
+          <div class="card-desc">Log aggregation system. Promtail ships container logs from Docker, queryable via LogQL. Add Loki datasource in Grafana for unified logs + metrics.</div>
+        </div>
+        <div class="card-ports">
+          <a class="port-badge" href="http://localhost:3100/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            :3106 UI
+          </a>
+          <span class="port-badge" style="cursor:default;opacity:0.5">
+            <svg viewBox="0 0 11 11" fill="none"><path d="M2 5.5h7M6.5 3 9 5.5 6.5 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            promtail:9080 (internal)
+          </span>
+        </div>
+        <div class="card-image-tag">grafana/loki:3.4.2 + promtail</div>
+      </a>
     </div>
 
     <!-- Quick reference row -->

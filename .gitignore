@@ -42,3 +42,6 @@ docker-compose.override.yml
 # ── Backup / orphaned files (optional cleanup) ──
 *.bak
 *.orig
+
+# ── Machine-specific scripts ──
+start-ssh-tunnels.sh
