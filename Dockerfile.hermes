@@ -1,0 +1,12 @@
+FROM python:3.11-alpine
+RUN apk add --no-cache git curl jq && \
+    curl -fsSL https://astral.sh/uv/install.sh | sh && \
+    export PATH="$HOME/.local/bin:$PATH" && \
+    git clone --depth 1 https://github.com/NousResearch/hermes-agent.git /hermes-agent && \
+    cd /hermes-agent && uv venv && uv sync
+
+COPY entrypoint-hermes.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+WORKDIR /hermes-agent
+ENTRYPOINT ["/entrypoint.sh"]

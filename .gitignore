@@ -1,0 +1,44 @@
+# ── Runtime config with secrets ──
+.env
+env.json
+mcp.json
+
+*.pem
+*.key
+
+# ── Docker runtime data ──
+docker-data/
+
+# ── OS artifacts ──
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ── Editor / IDE ──
+.idea/
+.vscode/
+*.sublime-*
+
+# ── Logs & temp ──
+*.log
+*.tmp
+/var/log/
+
+# ── Node / Python / Build ──
+node_modules/
+__pycache__/
+*.pyc
+dist/
+build/
+.cache/
+
+# ── Docker image tarballs & overrides ──
+*.tar
+*.tar.gz
+docker-compose.override.yml
+
+# ── Backup / orphaned files (optional cleanup) ──
+*.bak
+*.orig

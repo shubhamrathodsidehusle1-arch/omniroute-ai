@@ -1,0 +1,307 @@
+model_list:
+
+  # ======================================================
+  # claude-sonnet-4-6 (primary) — 4 providers, 10 deployments
+  # ======================================================
+
+  # -- Cloudflare (reliable, high limits) --
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/@cf/meta/llama-3.3-70b-instruct-fp8-fast
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 100
+
+  # -- OpenRouter NVIDIA (key rotation) --
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_0
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_1
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_2
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_3
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  # -- NVIDIA NIM --
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/nvidia_nim/meta/llama-3.3-70b-instruct
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/nvidia_nim/deepseek-ai/deepseek-r1
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/nvidia_nim/deepseek-ai/deepseek-v4-pro
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/nvidia_nim/deepseek-ai/deepseek-v4-flash
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/nvidia_nim/z-ai/glm-5.2
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  # -- KiloCode (may return empty content) --
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY_1
+      timeout: 60
+      stream_timeout: 60
+      rpm: 30
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY_2
+      timeout: 60
+      stream_timeout: 60
+      rpm: 30
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY_3
+      timeout: 60
+      stream_timeout: 60
+      rpm: 30
+
+  # ======================================================
+  # claude-haiku-4-5-20251001 (fast) — 2 providers, 4 deployments
+  # ======================================================
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: openai/@cf/meta/llama-3.2-3b-instruct
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
+      timeout: 60
+      stream_timeout: 60
+      rpm: 100
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: openai/@cf/mistral/mistral-7b-instruct-v0.1
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
+      timeout: 60
+      stream_timeout: 60
+      rpm: 100
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_4
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_5
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  # ======================================================
+  # claude-opus-4-9-20260710 (powerful) — 3 providers, 8 deployments
+  # ======================================================
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openai/@cf/meta/llama-3.3-70b-instruct-fp8-fast
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 100
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_6
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_7
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_8
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openrouter/openrouter/free
+      api_key: os.environ/OPENROUTER_API_KEY_9
+      timeout: 60
+      stream_timeout: 60
+      rpm: 20
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY_1
+      timeout: 60
+      stream_timeout: 60
+      rpm: 30
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY_2
+      timeout: 60
+      stream_timeout: 60
+      rpm: 30
+
+  - model_name: claude-opus-4-9-20260710
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY_3
+      timeout: 60
+      stream_timeout: 60
+      rpm: 30
+
+  # ======================================================
+  # Standalone aliases for direct access
+  # ======================================================
+
+  - model_name: claude-sonnet-4-7-20260710
+    litellm_params:
+      model: openai/@cf/meta/llama-3.2-3b-instruct
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
+      timeout: 60
+      stream_timeout: 60
+      rpm: 100
+
+  - model_name: deepseek-r1
+    litellm_params:
+      model: openai/nvidia_nim/deepseek-ai/deepseek-r1
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: deepseek-v4-pro
+    litellm_params:
+      model: openai/nvidia_nim/deepseek-ai/deepseek-v4-pro
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: deepseek-v4-flash
+    litellm_params:
+      model: openai/nvidia_nim/deepseek-ai/deepseek-v4-flash
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: glm-5.2
+    litellm_params:
+      model: openai/nvidia_nim/z-ai/glm-5.2
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+      timeout: 120
+      stream_timeout: 120
+      rpm: 60
+
+  - model_name: text-embedding-3-large
+    litellm_params:
+      model: openai/@cf/baai/bge-base-en-v1.5
+      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
+      timeout: 60
+      mode: embedding
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  request_timeout: 120
+  num_retries: 2
+  fallbacks:
+    - claude-sonnet-4-6: ["deepseek-r1", "claude-haiku-4-5-20251001"]
+    - claude-opus-4-9-20260710:
+      - claude-sonnet-4-6
+      - deepseek-v4-pro
+      - deepseek-v4-flash
+    - deepseek-v4-pro: ["deepseek-v4-flash"]
+
+router_settings:
+  cooldown_time: 30
+  allowed_fails: 3
+  routing_strategy: usage-based-routing

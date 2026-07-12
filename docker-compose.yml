@@ -1,0 +1,401 @@
+networks:
+  claws-network:
+    driver: bridge
+
+services:
+  permissions-init:
+    image: alpine:latest
+    container_name: permissions-init
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /workspace/docker-data/omniroute-data \
+          /workspace/docker-data/openclaw_data \
+          /workspace/docker-data/cc-data \
+          /workspace/docker-data/hermes_data \
+          /workspace/docker-data/n8n-data \
+          /workspace/docker-data/godmode3-data \
+          /workspace/docker-data/paperclip-data \
+          /workspace/docker-data/qdrant-data \
+          /workspace/docker-data/prometheus-data \
+          /workspace/docker-data/grafana-data
+        chmod -R 777 /workspace/docker-data
+        echo "Created docker-data directories and applied permissions"
+    volumes:
+      - ./docker-data:/workspace/docker-data
+    restart: "no"
+    networks:
+      - claws-network
+
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw
+    container_name: openclaw
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "18789:18789"
+      - "3333:3333"
+    volumes:
+      - ./env.json:/app/env.json
+      - ./mcp.json:/app/mcp.json:ro
+      - ./docker-data/openclaw_data:/root/.openclaw
+      - ./docker-data/cc-data:/data
+    environment:
+      - OMNIROUTE_URL=http://omniroute:20128
+      - OMNI_ROUTE_API_KEY=${OMNI_ROUTE_API_KEY}
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-openclaw}
+      - DASHBOARD_AUTH_MODE=none
+    command: sh /entrypoint-combined.sh
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+
+  hermes:
+    build:
+      context: .
+      dockerfile: Dockerfile.hermes
+    container_name: hermes-agent
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "9119:9119"
+    volumes:
+      - ./docker-data/hermes_data:/root/.hermes
+      - ./mcp.json:/root/.hermes/mcp.json:ro
+      - ./env.json:/app/env.json
+    environment:
+      - OMNIROUTE_URL=http://omniroute:20128
+      - OMNI_ROUTE_API_KEY=${OMNI_ROUTE_API_KEY}
+      - API_SERVER_ENABLED=true
+      - API_SERVER_KEY=${API_SERVER_KEY:-hermes-paperclip-bridge-key-2026}
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./dashboard.html:/usr/share/nginx/html/index.html:ro
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command: http nginx:80 --url=${NGROK_URL} --log=stdout
+    depends_on:
+      nginx:
+        condition: service_started
+    networks:
+      - claws-network
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm
+    ports:
+      - "4001:4001"
+    volumes:
+      - ./config-desktop.yaml:/app/config.yaml
+      - ./env.json:/app/env.json
+    command: --config /app/config.yaml --port 4001
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:4001/health/liveliness')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - WEBHOOK_URL=${WEBHOOK_URL}/n8n/
+      - OMNIROUTE_URL=http://omniroute:20128
+      - HERMES_URL=http://hermes-agent:9119
+      - PAPERCLIP_URL=http://paperclip:3100
+    volumes:
+      - ./docker-data/n8n-data:/home/node/.n8n
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+    restart: unless-stopped
+
+  godmode3:
+    image: node:22-slim
+    container_name: godmode3
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "17777:3000"
+    volumes:
+      - ./docker-data/godmode3-data:/data
+      - ./env.json:/app/env.json:ro
+    working_dir: /data/G0DM0D3
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - PORT=3000
+    command:
+      - sh
+      - -c
+      - |
+        apt-get update -qq && apt-get install -y -qq git python3 2>/dev/null &&
+        if [ ! -d /data/G0DM0D3 ]; then git clone --depth 1 https://github.com/elder-plinius/G0DM0D3 /data/G0DM0D3; fi &&
+        cd /data/G0DM0D3 &&
+        echo 'Starting G0DM0D3 web UI on http://0.0.0.0:3000' &&
+        python3 -m http.server 3000
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+
+  paperclip:
+    build:
+      context: .
+      dockerfile: Dockerfile.paperclip
+    # image: open-hermes-claw-paperclip
+    container_name: paperclip
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./docker-data/paperclip-data:/paperclip
+      - ./docker-data/hermes_data:/root/.hermes
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3100
+      - SERVE_UI=true
+      - PAPERCLIP_HOME=/paperclip
+      - PAPERCLIP_INSTANCE_ID=default
+      - PAPERCLIP_DEPLOYMENT_MODE=authenticated
+      - PAPERCLIP_DEPLOYMENT_EXPOSURE=private
+      - PAPERCLIP_AGENT_JWT_SECRET=${PAPERCLIP_AGENT_JWT_SECRET:-CHANGE-ME-REPLACE-IN-PRODUCTION}
+      - PAPERCLIP_ALLOWED_HOSTNAMES=${WEBHOOK_URL}
+      - PAPERCLIP_AUTH_PUBLIC_BASE_URL=${WEBHOOK_URL}/paperclip/
+      - OMNIROUTE_URL=http://omniroute:20128
+      - OMNI_ROUTE_API_KEY=${OMNI_ROUTE_API_KEY}
+      - ANTHROPIC_BASE_URL=http://omniroute:20128
+      - ANTHROPIC_API_KEY=${OMNI_ROUTE_API_KEY}
+      - OPENAI_BASE_URL=http://omniroute:20128/v1
+      - OPENAI_API_KEY=${OMNI_ROUTE_API_KEY}
+      - HERMES_URL=http://hermes-agent:9119
+    command: >
+      sh -c "
+        mkdir -p /paperclip/instances/default/db && chmod 0700 /paperclip/instances/default/db
+        ln -sf /app/server/src/built-ins /app/server/dist/built-ins
+        node --import /app/server/node_modules/tsx/dist/loader.mjs /app/server/dist/index.js
+      "
+    networks:
+      - claws-network
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+      hermes:
+        condition: service_started
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./docker-data/qdrant-data:/qdrant/storage
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker-data/prometheus-data:/prometheus
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.external-url=${WEBHOOK_URL}/prometheus/'
+    networks:
+      - claws-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/ohc-fullstack.json
+    volumes:
+      - ./docker-data/grafana-data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    networks:
+      - claws-network
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+      prometheus:
+        condition: service_started
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - claws-network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    networks:
+      - claws-network
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+
+  omniroute-redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: omniroute-redis
+    restart: unless-stopped
+    networks:
+      - claws-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    restart: unless-stopped
+    ports:
+      - "20128:20128"
+    volumes:
+      - ./docker-data/omniroute-data:/app/data
+    environment:
+      - PORT=20128
+      - REDIS_URL=redis://omniroute-redis:6379
+    healthcheck:
+      test: ["CMD", "node", "-e", "http.get('http://localhost:20128/v1/models',r=>process.exit(r.statusCode===200?0:1))"]
+      interval: 5s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
+    networks:
+      - claws-network
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+      omniroute-redis:
+        condition: service_healthy
+
+  omniroute-init:
+    image: alpine:latest
+    container_name: omniroute-init
+    command: >
+      sh -c "
+      apk add --no-cache sqlite nodejs 2>/dev/null &&
+      sh /scripts/omniroute-seed.sh
+      "
+    volumes:
+      - ./docker-data/omniroute-data:/app/data
+      - ./scripts/omniroute-seed.sh:/scripts/omniroute-seed.sh:ro
+    environment:
+      - CLOUDFLARE_API_KEY=${CLOUDFLARE_WORKER_AI_API_KEY}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_WORKER_AI_ACCOUNT_ID}
+      - NVIDIA_API_KEY=${NVIDIA_NIM_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_API_KEY_0=${OPENROUTER_API_KEY_0}
+      - OPENROUTER_API_KEY_1=${OPENROUTER_API_KEY_1}
+      - OPENROUTER_API_KEY_2=${OPENROUTER_API_KEY_2}
+      - OPENROUTER_API_KEY_3=${OPENROUTER_API_KEY_3}
+      - OPENROUTER_API_KEY_4=${OPENROUTER_API_KEY_4}
+      - OPENROUTER_API_KEY_5=${OPENROUTER_API_KEY_5}
+      - OPENROUTER_API_KEY_6=${OPENROUTER_API_KEY_6}
+      - OPENROUTER_API_KEY_7=${OPENROUTER_API_KEY_7}
+      - OPENROUTER_API_KEY_8=${OPENROUTER_API_KEY_8}
+      - OPENROUTER_API_KEY_9=${OPENROUTER_API_KEY_9}
+      - KILOCODE_API_KEY=${KILO_API_KEY_1}
+      - KILO_API_KEY_1=${KILO_API_KEY_1}
+      - KILO_API_KEY_2=${KILO_API_KEY_2}
+      - KILO_API_KEY_3=${KILO_API_KEY_3}
+    networks:
+      - claws-network
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+      omniroute:
+        condition: service_healthy
+    restart: "no"

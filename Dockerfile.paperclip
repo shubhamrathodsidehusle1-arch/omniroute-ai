@@ -1,0 +1,12 @@
+FROM ghcr.io/paperclipai/paperclip:latest
+
+USER root
+
+RUN apt-get update -qq && apt-get install -y -qq python3-pip python3-venv && \
+    python3 -m venv /opt/hermes-venv && \
+    /opt/hermes-venv/bin/pip install hermes-agent -q && \
+    ln -sf /opt/hermes-venv/bin/hermes /usr/local/bin/hermes && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+USER node
