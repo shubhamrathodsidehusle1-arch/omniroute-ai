@@ -15,6 +15,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+Screenshot*.png
 
 # ── Editor / IDE ──
 .idea/
