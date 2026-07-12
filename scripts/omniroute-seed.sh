@@ -36,7 +36,8 @@ encrypt_key() {
 
 seed_if_missing() {
   local id="$1"
-  local exists=$(sqlite3 "$DB" "SELECT COUNT(*) FROM provider_connections WHERE id='$id';" 2>/dev/null)
+  local e_id=$(sqlesc "$id")
+  local exists=$(sqlite3 "$DB" "SELECT COUNT(*) FROM provider_connections WHERE id='$e_id';" 2>/dev/null)
   [ "$exists" -gt 0 ] && return 1
   return 0
 }
@@ -45,13 +46,16 @@ NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 COLS="id,provider,auth_type,name,priority,is_active,test_status,proxy_enabled,per_key_proxy_enabled,provider_specific_data,access_token,created_at,updated_at"
 BASE="1,1,'active',1,0"
 
+sqlesc() { printf "%s" "$1" | sed "s/'/''/g"; }
+
 seed_single() {
   local id="$1" provider="$2" name="$3" key="$4" extra="$5"
   seed_if_missing "$id" || return 0
   JSON="{\"name\":\"${name}\",\"apiKey\":\"${key}\",\"baseUrl\":\"${extra}\""
   [ -n "$6" ] && JSON="$JSON,\"accountId\":\"$6\",\"region\":\"us-east-1\""
   JSON="$JSON,\"apiKeyHealth\":{}}"
-  sqlite3 "$DB" "INSERT INTO provider_connections ($COLS) VALUES ('$id','$provider','apikey','$name',$BASE,'$JSON','$key','$NOW','$NOW');" && echo "  + $name"
+  local e_id=$(sqlesc "$id") e_provider=$(sqlesc "$provider") e_name=$(sqlesc "$name") e_json=$(sqlesc "$JSON") e_key=$(sqlesc "$key")
+  sqlite3 "$DB" "INSERT INTO provider_connections ($COLS) VALUES ('$e_id','$e_provider','apikey','$e_name',$BASE,'$e_json','$e_key','$NOW','$NOW');" && echo "  + $name"
 }
 
 seed_providers() {

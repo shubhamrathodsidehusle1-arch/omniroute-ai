@@ -85,7 +85,7 @@ services:
       - OMNIROUTE_URL=http://omniroute:20128
       - OMNI_ROUTE_API_KEY=${OMNI_ROUTE_API_KEY}
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-      - DASHBOARD_AUTH_MODE=none
+
     command: sh /entrypoint-combined.sh
     depends_on:
       permissions-init:
