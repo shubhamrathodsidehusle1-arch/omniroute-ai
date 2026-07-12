@@ -6,6 +6,11 @@ OMNI_ROUTE_API_KEY="${OMNI_ROUTE_API_KEY}"
 
 mkdir -p /root/.openclaw /data
 
+# Seed default config if not present (preserves custom provider models)
+if [ ! -f /root/.openclaw/openclaw.json ] && [ -f /configs/openclaw.json ]; then
+  cp /configs/openclaw.json /root/.openclaw/openclaw.json
+fi
+
 export OPENAI_API_KEY="${OPENAI_API_KEY:-${OMNI_ROUTE_API_KEY}}"
 export OPENAI_BASE_URL="${OMNIROUTE_URL}/v1"
 
@@ -23,7 +28,10 @@ openclaw config set models.providers.anthropic.apiKey "${OMNI_ROUTE_API_KEY}" 2>
 openclaw config set models.providers.kg.api "openai-completions" 2>/dev/null || true
 openclaw config set models.providers.kg.baseUrl "${OMNIROUTE_URL}" 2>/dev/null || true
 openclaw config set models.providers.kg.apiKey "${OMNI_ROUTE_API_KEY}" 2>/dev/null || true
-openclaw config set agents.defaults.model.primary "kg/kilo-gateway/kilo-auto/free" 2>/dev/null || true
+
+openclaw config set models.providers.or.baseUrl "${OMNIROUTE_URL}" 2>/dev/null || true
+openclaw config set models.providers.or.apiKey "${OMNI_ROUTE_API_KEY}" 2>/dev/null || true
+openclaw config set agents.defaults.model.primary "or/auto/best-free" 2>/dev/null || true
 
 if [ -n "$OPENCLAW_TELEGRAM_BOT_TOKEN" ]; then
   if ! openclaw channels list 2>/dev/null | grep -q "telegram"; then

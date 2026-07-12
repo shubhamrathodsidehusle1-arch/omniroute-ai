@@ -1,0 +1,72 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "/root/.openclaw/workspace",
+      "model": {
+        "primary": "or/auto/best-free"
+      }
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "port": 18789,
+    "bind": "auto",
+    "trustedProxies": ["0.0.0.0/0"],
+    "controlUi": {
+      "dangerouslyDisableDeviceAuth": true,
+      "allowedOrigins": ["*"]
+    }
+  },
+  "models": {
+    "providers": {
+      "or": {
+        "api": "openai-completions",
+        "baseUrl": "http://omniroute:20128",
+        "apiKey": "",
+        "models": [{
+          "id": "auto/best-free",
+          "name": "Auto Best Free",
+          "contextWindow": 128000,
+          "maxTokens": 4096,
+          "input": ["text"],
+          "cost": { "input": 0, "output": 0 }
+        }]
+      },
+      "anthropic": {
+        "api": "anthropic-messages",
+        "baseUrl": "http://omniroute:20128",
+        "apiKey": ""
+      },
+      "kg": {
+        "api": "openai-completions",
+        "baseUrl": "http://omniroute:20128",
+        "apiKey": "",
+        "models": [{
+          "id": "kilo-gateway/kilo-auto/free",
+          "name": "KiloCode Free",
+          "contextWindow": 128000,
+          "maxTokens": 4096,
+          "input": ["text"],
+          "cost": { "input": 0, "output": 0 }
+        }]
+      }
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.6.11"
+  },
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": true }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": ""
+    }
+  },
+  "commands": {
+    "ownerAllowFrom": ["telegram:7500771474"]
+  }
+}

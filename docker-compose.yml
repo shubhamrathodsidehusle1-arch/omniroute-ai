@@ -78,6 +78,7 @@ services:
     volumes:
       - ./env.json:/app/env.json
       - ./mcp.json:/app/mcp.json:ro
+      - ./configs/openclaw.json:/configs/openclaw.json:ro
       - ./docker-data/openclaw_data:/root/.openclaw
       - ./docker-data/cc-data:/data
     environment:
