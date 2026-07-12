@@ -44,5 +44,8 @@ docker-compose.override.yml
 *.bak
 *.orig
 
+# ── Debug / dev artifacts ──
+tmp_check_db.js
+
 # ── Machine-specific scripts ──
 start-ssh-tunnels.sh

@@ -13,7 +13,7 @@ echo "========================================="
 echo ""
 echo "Finding Claude processes..."
 
-CLAUDE_PIDS="$(pgrep -f "claude" || true)"
+CLAUDE_PIDS="$(pgrep -f "[c]laude" || true)"
 
 if [[ -z "$CLAUDE_PIDS" ]]; then
 
@@ -116,7 +116,7 @@ fi
 echo ""
 echo "Verifying cleanup..."
 
-REMAINING_CLAUDE="$(pgrep -f "claude" 2>/dev/null || true)"
+REMAINING_CLAUDE="$(pgrep -f "[c]laude" 2>/dev/null || true)"
 REMAINING_LITELLM="$(pgrep -f "litellm" 2>/dev/null || true)"
 REMAINING_PORT="$(lsof -ti :4001 2>/dev/null || true)"
 

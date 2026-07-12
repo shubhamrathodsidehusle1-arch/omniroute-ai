@@ -163,6 +163,21 @@ services:
     networks:
       - claws-network
 
+  service-controller:
+    build:
+      context: .
+      dockerfile: Dockerfile.service-controller
+    container_name: service-controller
+    restart: unless-stopped
+    volumes:
+      - ./service_run.json:/workspace/service_run.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      permissions-init:
+        condition: service_completed_successfully
+    networks:
+      - claws-network
+
   litellm:
     image: ghcr.io/berriai/litellm:main-latest
     container_name: litellm

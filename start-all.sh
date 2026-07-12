@@ -16,7 +16,7 @@ model_list:
     litellm_params:
       model: openai/moonshotai/kimi-k2.6
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -25,7 +25,7 @@ model_list:
     litellm_params:
       model: openai/minimaxai/minimax-m2.7
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -93,7 +93,7 @@ model_list:
     litellm_params:
       model: openai/deepseek-ai/deepseek-v4-flash
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -102,7 +102,7 @@ model_list:
     litellm_params:
       model: openai/deepseek-ai/deepseek-v4-pro
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -111,7 +111,7 @@ model_list:
     litellm_params:
       model: openai/z-ai/glm-5.2
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30

@@ -28,4 +28,4 @@ scrape_configs:
   - job_name: 'langfuse'
     metrics_path: '/api/public/metrics'
     static_configs:
-      - targets: ['langfuse:3030']
+      - targets: ['langfuse:3000']

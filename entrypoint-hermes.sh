@@ -15,7 +15,7 @@ OMNIROUTE_URL=${OMNIROUTE_URL}
 TELEGRAM_BOT_TOKEN=${HERMES_TELEGRAM_BOT_TOKEN:-}
 EOF
 
-PASSWORD_HASH=$(/hermes-agent/.venv/bin/python -c "from plugins.dashboard_auth.basic import hash_password; print(hash_password('${HERMES_ADMIN_PASSWORD:-admin}'))" 2>/dev/null)
+PASSWORD_HASH=$(/hermes-agent/.venv/bin/python -c "from plugins.dashboard_auth.basic import hash_password; print(hash_password('${HERMES_ADMIN_PASSWORD:-admin}'))")
 cat > /root/.hermes/config.yaml <<EOF
 dashboard:
   basic_auth:

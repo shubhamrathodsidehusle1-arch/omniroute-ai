@@ -52,7 +52,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/meta/llama-3.3-70b-instruct
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -61,7 +61,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/deepseek-ai/deepseek-r1
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -70,7 +70,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/deepseek-ai/deepseek-v4-pro
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -79,7 +79,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/deepseek-ai/deepseek-v4-flash
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -88,7 +88,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/z-ai/glm-5.2
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -248,7 +248,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/deepseek-ai/deepseek-r1
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -257,7 +257,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/deepseek-ai/deepseek-v4-pro
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -266,7 +266,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/deepseek-ai/deepseek-v4-flash
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
@@ -275,7 +275,7 @@ model_list:
     litellm_params:
       model: openai/nvidia_nim/z-ai/glm-5.2
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVIDIA_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 60
