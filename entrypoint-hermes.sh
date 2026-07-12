@@ -23,7 +23,7 @@ dashboard:
     password_hash: ${PASSWORD_HASH:-scrypt}
 model:
   provider: custom
-  default: kilo-gateway/kilo-auto/free
+  default: auto/best-free
   base_url: ${OMNIROUTE_URL}/v1
   api_key: ${OMNI_ROUTE_API_KEY}
 EOF
