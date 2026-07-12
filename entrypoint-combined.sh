@@ -3,7 +3,7 @@ set -e
 
 OMNIROUTE_URL="${OMNIROUTE_URL:-http://omniroute:20128}"
 OMNI_ROUTE_API_KEY="${OMNI_ROUTE_API_KEY}"
-GW_TOKEN="${OPENCLAW_GATEWAY_TOKEN:-openclaw}"
+GW_TOKEN="${OPENCLAW_GATEWAY_TOKEN}"
 
 mkdir -p /root/.openclaw /data
 
