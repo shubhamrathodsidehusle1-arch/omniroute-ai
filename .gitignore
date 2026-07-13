@@ -15,6 +15,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+Screenshot*.png
 
 # ── Editor / IDE ──
 .idea/
@@ -34,6 +35,9 @@ dist/
 build/
 .cache/
 
+# ── Python virtual env (created by start-all.sh) ──
+.venv/
+
 # ── Docker image tarballs & overrides ──
 *.tar
 *.tar.gz
@@ -42,3 +46,11 @@ docker-compose.override.yml
 # ── Backup / orphaned files (optional cleanup) ──
 *.bak
 *.orig
+
+# ── Debug / dev artifacts ──
+tmp_check_db.js
+tmp/
+nohup.out
+
+# ── Machine-specific scripts ──
+start-ssh-tunnels.sh

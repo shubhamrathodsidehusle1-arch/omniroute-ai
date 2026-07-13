@@ -16,7 +16,7 @@ model_list:
     litellm_params:
       model: openai/moonshotai/kimi-k2.6
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -25,7 +25,7 @@ model_list:
     litellm_params:
       model: openai/minimaxai/minimax-m2.7
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -33,7 +33,7 @@ model_list:
   - model_name: claude-sonnet-5
     litellm_params:
       model: openai/moonshotai/kimi-k2.6
-      api_base: https://api.cloudflare.com/client/v4/accounts/9c2419822760c42fff9eea4a1864d1d0/ai/v1
+      api_base: https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1
       api_key: os.environ/CLOUDFLARE_WORKER_AI_API_KEY
       timeout: 120
       stream_timeout: 120
@@ -43,7 +43,7 @@ model_list:
     litellm_params:
       model: openai/kilo-auto/free
       api_base: https://api.kilo.ai/api/gateway
-      api_key: os.environ/KILO_API_KEY
+      api_key: os.environ/KILO_API_KEY_1
       timeout: 90
       stream_timeout: 90
       rpm: 40
@@ -93,7 +93,7 @@ model_list:
     litellm_params:
       model: openai/deepseek-ai/deepseek-v4-flash
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -102,7 +102,7 @@ model_list:
     litellm_params:
       model: openai/deepseek-ai/deepseek-v4-pro
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -111,7 +111,7 @@ model_list:
     litellm_params:
       model: openai/z-ai/glm-5.2
       api_base: https://integrate.api.nvidia.com/v1
-      api_key: os.environ/NVDIA_NIM_API_KEY
+      api_key: os.environ/NVIDIA_NIM_API_KEY
       timeout: 120
       stream_timeout: 120
       rpm: 30
@@ -122,6 +122,7 @@ litellm_settings:
   request_timeout: 120
   num_retries: 2
 YAML
+  sed -i "s/__CLOUDFLARE_ACCOUNT_ID__/${CLOUDFLARE_WORKER_AI_ACCOUNT_ID}/g" "$CONFIG"
   echo "  Created $CONFIG"
 fi
 
@@ -132,12 +133,17 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 
 ENV_JSON="${SCRIPT_DIR}/env.json"
-echo "{" > "$ENV_JSON"
-while IFS='=' read -r key val; do
-  [[ -z "$key" || "$key" == "#"* ]] && continue
-  printf '  "%s": "%s",\n' "$key" "$val"
-done < "${SCRIPT_DIR}/.env" | sed '$ s/,$//' >> "$ENV_JSON"
-echo "}" >> "$ENV_JSON"
+jq -R 'split("\n") | map(select(length > 0 and startswith("#") | not)) | map(capture("^(?<key>[^=]+)=(?<val>.*)$")) | from_entries' \
+  "${SCRIPT_DIR}/.env" > "$ENV_JSON" 2>/dev/null || {
+  echo "  WARNING: jq not available, writing env.json as raw text"
+  echo "{" > "$ENV_JSON"
+  while IFS='=' read -r key val; do
+    [[ -z "$key" || "$key" == "#"* ]] && continue
+    printf '  "%s": "%s",\n' "$key" "$val"
+  done < "${SCRIPT_DIR}/.env" | sed '$ s/,$//' >> "$ENV_JSON"
+  echo "}" >> "$ENV_JSON"
+}
+chmod 600 "$ENV_JSON"
 echo "  Wrote $ENV_JSON"
 
 echo "Starting Claude stack..."

@@ -19,3 +19,13 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'loki'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['loki:3100']
+
+  - job_name: 'langfuse'
+    metrics_path: '/api/public/metrics'
+    static_configs:
+      - targets: ['langfuse:3000']

@@ -1,0 +1,23 @@
+{
+  "postgres": true,
+  "omniroute-redis": true,
+  "nginx": true,
+  "openclaw": true,
+  "hermes": true,
+  "paperclip": true,
+  "litellm": true,
+  "n8n": true,
+  "dify-api": false,
+  "dify-worker": false,
+  "dify-web": false,
+  "langfuse": false,
+  "grafana": false,
+  "prometheus": false,
+  "loki": false,
+  "promtail": false,
+  "cadvisor": false,
+  "node-exporter": false,
+  "qdrant": true,
+  "uptime-kuma": false,
+  "godmode3": false
+}

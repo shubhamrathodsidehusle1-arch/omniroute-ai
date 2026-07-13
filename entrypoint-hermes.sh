@@ -15,15 +15,16 @@ OMNIROUTE_URL=${OMNIROUTE_URL}
 TELEGRAM_BOT_TOKEN=${HERMES_TELEGRAM_BOT_TOKEN:-}
 EOF
 
-PASSWORD_HASH=$(/hermes-agent/.venv/bin/python -c "from plugins.dashboard_auth.basic import hash_password; print(hash_password('admin'))" 2>/dev/null)
+PASSWORD_HASH=$(HERMES_ADMIN_PASSWORD="${HERMES_ADMIN_PASSWORD:?HERMES_ADMIN_PASSWORD is required}" \
+  /hermes-agent/.venv/bin/python -c "import os; from plugins.dashboard_auth.basic import hash_password; print(hash_password(os.environ['HERMES_ADMIN_PASSWORD']))")
 cat > /root/.hermes/config.yaml <<EOF
 dashboard:
   basic_auth:
     username: admin
-    password_hash: ${PASSWORD_HASH:-scrypt}
+    password_hash: ${PASSWORD_HASH}
 model:
   provider: custom
-  default: kilo-gateway/kilo-auto/free
+  default: auto/best-free
   base_url: ${OMNIROUTE_URL}/v1
   api_key: ${OMNI_ROUTE_API_KEY}
 EOF
