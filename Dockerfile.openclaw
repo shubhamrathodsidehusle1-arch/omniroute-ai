@@ -1,7 +1,9 @@
 FROM node:22-alpine
 RUN apk add --no-cache python3 make g++ curl jq && npm install -g openclaw
 
-COPY entrypoint-combined.sh /entrypoint-combined.sh
-RUN chmod +x /entrypoint-combined.sh
+COPY entrypoint-openclaw.sh /entrypoint-openclaw.sh
+RUN chmod +x /entrypoint-openclaw.sh
 
-CMD ["sh", "/entrypoint-combined.sh"]
+COPY configs /configs
+
+CMD ["sh", "/entrypoint-openclaw.sh"]

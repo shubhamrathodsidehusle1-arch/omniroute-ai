@@ -14,12 +14,11 @@ AI agent infrastructure stack — a docker-compose deployment of agent orchestra
 | **Paperclip** | `3100` | AI task orchestration — agent management, tasks, routines, governance |
 | **Qdrant** | `6333` | High-performance vector search engine for agent memory and RAG |
 | **Prometheus** | `9090` | Time-series monitoring and alerting |
-| **Grafana** | `3000` | Observability dashboards (admin/admin) |
+| **Grafana** | `3000` | Observability dashboards |
 | **OmniRoute** | `20128` | AI provider aggregation gateway (231+ providers, MCP/A2A) |
 | **cAdvisor** | `8081` | Container resource metrics |
 | **node-exporter** | `9100` | Host metrics |
 | **nginx** | `80` | Static dashboard reverse-proxy |
-| **ngrok** | — | Public HTTPS tunnel to the dashboard |
 
 Access any service at `http://localhost:<PORT>`.
 
@@ -45,28 +44,22 @@ Copy `.env.example` to `.env` and configure at minimum:
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `OPENROUTER_API_KEY` | Yes | LLM routing via OpenRouter |
-| `NGROK_AUTHTOKEN` | For tunnel | ngrok auth token |
 | `OMNI_ROUTE_API_KEY` | For OmniRoute | Provider gateway API key |
 
 See `.env.example` for the full list of supported variables.
 
 ## Architecture
 
-All services run on a shared `claws-network` bridge network and can communicate by container hostname. External access is through `localhost:<PORT>` directly; ngrok tunnels only to the nginx dashboard at port 80.
+All services run on a shared `claws-network` bridge network and can communicate by container hostname. External access is through `localhost:<PORT>` directly.
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   ngrok                          │
-│           tunnels :80 → public URL               │
-└────────────────────┬────────────────────────────┘
-                     │
-              ┌──────▼──────┐
-              │   nginx:80   │  static dashboard
-              └──────┬──────┘
-                     │
-    ┌────────────────┼────────────────────┐
-    │                │                    │
-    ▼                ▼                    ▼
+┌───────────────────┐
+│   nginx:80         │  static dashboard
+└────────┬──────────┘
+         │
+    ┌────┼────────────────────┐
+    │    │                    │
+    ▼    ▼                    ▼
  openclaw         hermes              litellm
  :3333/18789      :9119               :4001
 
@@ -85,6 +78,6 @@ All services run on a shared `claws-network` bridge network and can communicate 
 
 ## Custom Images
 
-- **OpenClaw** — built from `Dockerfile.openclaw`, started via `entrypoint-combined.sh`
+- **OpenClaw** — built from `Dockerfile.openclaw`, started via `entrypoint-openclaw.sh`
 - **Hermes** — built from `Dockerfile.hermes`, started via `entrypoint-hermes.sh`
 - **Paperclip** — built from `Dockerfile.paperclip`
