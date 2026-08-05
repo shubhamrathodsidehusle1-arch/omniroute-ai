@@ -32,7 +32,8 @@ EOF
 # Build web frontend once if not cached
 if [ ! -d /hermes-agent/hermes_cli/web_dist ]; then
   apk add --no-cache npm 2>/dev/null
-  cd /hermes-agent/web && npm install -q 2>/dev/null && npm run build 2>/dev/null
+  npm install -g npm@11.17.0 2>/dev/null
+  cd /hermes-agent/web && npm install -q && npm run build
 fi
 
 echo "Starting Hermes gateway in background..."

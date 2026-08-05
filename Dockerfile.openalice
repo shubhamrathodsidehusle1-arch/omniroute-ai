@@ -1,0 +1,111 @@
+# OpenAlice — cloned from GitHub at build time (same pattern as
+# Dockerfile.hermes / Dockerfile.openclaw / Dockerfile.paperclip).
+# Two-stage build: full toolchain in `build`, slim runtime with only what's
+# needed to run the Guardian supervisor + the two long-lived processes
+# (Alice main + UTA service) plus the bundled agent CLIs.
+
+# ─── build stage ──────────────────────────────────────────
+FROM node:22-trixie AS build
+WORKDIR /src
+
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# pnpm via corepack (ships with Node 22). Pin the version the repo develops with.
+RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
+
+RUN git clone --depth 1 https://github.com/TraderAlice/OpenAlice.git /src
+
+RUN pnpm install --frozen-lockfile
+
+# Source + build. `.dockerignore` removes `apps/desktop`, so Electron is not a
+# discovered workspace and cannot trigger a late dependency install.
+RUN pnpm exec turbo run build --filter=!./packages/uta-broker-* \
+    && pnpm exec tsup src/main.ts --format esm --dts
+
+# Produce three dependency closures instead of pruning the whole workspace.
+RUN pnpm --config.inject-workspace-packages=true --filter open-alice deploy --prod /runtime/root \
+    && pnpm --config.inject-workspace-packages=true --filter @traderalice/uta-service deploy --prod /runtime/uta \
+    && pnpm --config.inject-workspace-packages=true --filter @traderalice/connector-service deploy --prod /runtime/connector \
+    && if find /runtime/root/node_modules /runtime/uta/node_modules /runtime/connector/node_modules \
+        -type d \( \
+          -path '*/node_modules/ccxt' -o \
+          -path '*/node_modules/longbridge' -o \
+          -path '*/node_modules/@alpacahq/alpaca-trade-api' \
+        \) -print -quit | grep -q .; then \
+      echo 'Broker SDK leaked into the core Docker dependency closures' >&2; \
+      exit 1; \
+    fi
+
+# ─── runtime stage ────────────────────────────────────────
+FROM node:22-trixie-slim AS runtime
+WORKDIR /app
+
+# Bash + POSIX utils are required by workspace bootstrap.sh scripts;
+# `git` is needed by every template's bootstrap.sh (`git init` per the
+# Harness rule). `tini` becomes PID 1 so signals reach the Guardian
+# supervisor cleanly and zombies are reaped.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        git \
+        tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# The four supported agent CLIs are installed globally so every Docker
+# Workspace gets the same runtime surface as OpenAlice.
+ARG CLAUDE_CODE_VERSION=2.1.202
+ARG CODEX_VERSION=0.144.1
+ARG OPENCODE_VERSION=1.17.18
+ARG PI_VERSION=0.83.0
+RUN npm install -g \
+        "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+        "@openai/codex@${CODEX_VERSION}" \
+        "opencode-ai@${OPENCODE_VERSION}" \
+        "@earendil-works/pi-coding-agent@${PI_VERSION}" \
+    && claude --version \
+    && codex --version \
+    && opencode --version \
+    && pi --version \
+    && npm cache clean --force
+
+# Production artifacts.
+COPY --from=build /src/dist                       ./dist
+COPY --from=build /src/services/uta/dist          ./services/uta/dist
+COPY --from=build /src/services/connector/dist    ./services/connector/dist
+COPY --from=build /src/ui/dist                    ./ui/dist
+COPY --from=build /src/default                    ./default
+COPY --from=build /src/src/workspaces/templates   ./src/workspaces/templates
+COPY --from=build /src/src/workspaces/cli/bin     ./src/workspaces/cli/bin
+RUN install -m 0755 /app/src/workspaces/cli/bin/alice /usr/local/bin/alice \
+    && install -m 0755 /app/src/workspaces/cli/bin/alice-uta /usr/local/bin/alice-uta \
+    && install -m 0755 /app/src/workspaces/cli/bin/alice-workspace /usr/local/bin/alice-workspace \
+    && install -m 0755 /app/src/workspaces/cli/bin/traderhub /usr/local/bin/traderhub \
+    && install -m 0644 /app/src/workspaces/cli/bin/openalice-cli.cjs /usr/local/bin/openalice-cli.cjs
+COPY --from=build /runtime/root/node_modules      ./node_modules
+COPY --from=build /src/package.json               ./package.json
+COPY --from=build /src/services/uta/package.json  ./services/uta/package.json
+COPY --from=build /src/services/connector/package.json ./services/connector/package.json
+COPY --from=build /runtime/uta/node_modules       ./services/uta/node_modules
+COPY --from=build /runtime/connector/node_modules ./services/connector/node_modules
+COPY --from=build /src/scripts                    ./scripts
+
+# Two-home model — see src/core/paths.ts.
+ENV OPENALICE_APP_HOME=/app \
+    OPENALICE_HOME=/data \
+    AQ_LAUNCHER_ROOT=/data/workspaces \
+    HOME=/data/home \
+    NODE_ENV=production \
+    OPENALICE_WEB_PORT=47331 \
+    OPENALICE_MCP_PORT=47332 \
+    OPENALICE_UTA_PORT=47333 \
+    OPENALICE_CONNECTOR_PORT=47334 \
+    OPENALICE_BIND_HOST=0.0.0.0
+
+VOLUME ["/data"]
+EXPOSE 47331
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD ["node", "-e", "const p=process.env.OPENALICE_WEB_PORT||'47331';fetch('http://127.0.0.1:'+p+'/api/version').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["node", "scripts/guardian/prod.mjs"]

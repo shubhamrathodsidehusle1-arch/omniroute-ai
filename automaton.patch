@@ -1,0 +1,358 @@
+diff --git a/src/conway/client.ts b/src/conway/client.ts
+index 13a8503..3d9910f 100644
+--- a/src/conway/client.ts
++++ b/src/conway/client.ts
+@@ -40,7 +40,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
+   // Normalize sandbox ID defensively so values like whitespace/"undefined"/"null"
+   // never produce malformed API paths such as /v1/sandboxes//exec.
+   const sandboxId = normalizeSandboxId(options.sandboxId);
+-  const httpClient = new ResilientHttpClient();
++  const httpClient = new ResilientHttpClient({ allowHttpOnLoopback: true });
+ 
+   async function request(
+     method: string,
+@@ -57,7 +57,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
+         method,
+         headers: {
+           "Content-Type": "application/json",
+-          Authorization: apiKey,
++          Authorization: `Bearer ${apiKey}`,
+         },
+         body: body ? JSON.stringify(body) : undefined,
+         idempotencyKey: requestOptions?.idempotencyKey,
+@@ -292,10 +292,35 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
+   };
+ 
+   // ─── Credits ─────────────────────────────────────────────────
++  // OmniRoute integration: credits are the remaining budget of the
++  // automaton's dedicated registered API key, queried from the
++  // OmniRoute usage/budget API (admin auth).
++
++  const getOmniRouteBudget = async (): Promise<number> => {
++    const adminKey = process.env.OMNIROUTE_ADMIN_KEY || apiKey;
++    const keyId = process.env.OMNIROUTE_KEY_ID || "";
++    const resp = await httpClient.request(
++      `${apiUrl}/api/usage/budget?apiKeyId=${encodeURIComponent(keyId)}`,
++      {
++        method: "GET",
++        headers: {
++          "Content-Type": "application/json",
++          Authorization: `Bearer ${adminKey}`,
++        },
++        timeout: 10_000,
++      },
++    );
++    if (!resp.ok) return 0;
++    const data = await resp.json();
++    const bc = data?.budgetCheck || {};
++    if (bc.allowed === false) return 0;
++    const remaining = Number(bc.remaining);
++    if (!Number.isFinite(remaining) || remaining <= 0) return 100;
++    return Math.round(remaining * 100);
++  };
+ 
+   const getCreditsBalance = async (): Promise<number> => {
+-    const result = await request("GET", "/v1/credits/balance");
+-    return result.balance_cents ?? result.credits_cents ?? 0;
++    return getOmniRouteBudget();
+   };
+ 
+   const getCreditsPricing = async (): Promise<PricingTier[]> => {
+@@ -331,7 +356,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+-          Authorization: apiKey,
++          Authorization: `Bearer ${apiKey}`,
+         },
+         body: JSON.stringify(payload),
+         idempotencyKey,
+@@ -547,7 +572,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
+     for (const url of urls) {
+       try {
+         const resp = await httpClient.request(url, {
+-          headers: { Authorization: apiKey },
++          headers: { Authorization: `Bearer ${apiKey}` },
+         });
+         if (!resp.ok) continue;
+         const result = (await resp.json()) as any;
+diff --git a/src/conway/http-client.ts b/src/conway/http-client.ts
+index 8f8460c..4370b84 100644
+--- a/src/conway/http-client.ts
++++ b/src/conway/http-client.ts
+@@ -29,7 +29,7 @@ function assertSecureUrl(
+   }
+ 
+   const host = parsed.hostname.toLowerCase();
+-  if (protocol === "http:" && allowHttpOnLoopback && LOOPBACK_HOSTS.has(host)) {
++  if (protocol === "http:" && allowHttpOnLoopback) {
+     return;
+   }
+ 
+diff --git a/src/conway/inference.ts b/src/conway/inference.ts
+index ebcf181..3656a7a 100644
+--- a/src/conway/inference.ts
++++ b/src/conway/inference.ts
+@@ -52,7 +52,7 @@ export function createInferenceClient(
+   const httpClient = new ResilientHttpClient({
+     baseTimeout: INFERENCE_TIMEOUT_MS,
+     retryableStatuses: [429, 500, 502, 503, 504],
+-    allowHttpOnLoopback: isLoopbackHttpUrl(ollamaBaseUrl),
++    allowHttpOnLoopback: true,
+   });
+   let currentModel = options.defaultModel;
+   let maxTokens = options.maxTokens;
+@@ -215,7 +215,7 @@ async function chatViaOpenAiCompatible(params: {
+       Authorization:
+         params.backend === "openai" || params.backend === "ollama"
+           ? `Bearer ${params.apiKey}`
+-          : params.apiKey,
++          : `Bearer ${params.apiKey}`,
+     },
+     body: JSON.stringify(params.body),
+     timeout: INFERENCE_TIMEOUT_MS,
+diff --git a/src/inference/provider-registry.ts b/src/inference/provider-registry.ts
+index b5f2fcd..a3b2a5a 100644
+--- a/src/inference/provider-registry.ts
++++ b/src/inference/provider-registry.ts
+@@ -76,36 +76,36 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
+     apiKeyEnvVar: "OPENAI_API_KEY",
+     models: [
+       {
+-        id: "gpt-4.1",
++        id: "auto/best-free",
+         tier: "reasoning",
+-        contextWindow: 128000,
++        contextWindow: 1047576,
+         maxOutputTokens: 32768,
+-        costPerInputToken: 2.0,
+-        costPerOutputToken: 8.0,
++        costPerInputToken: 0.1,
++        costPerOutputToken: 0.4,
+         supportsTools: true,
+         supportsVision: true,
+         supportsStreaming: true,
+       },
+       {
+-        id: "gpt-4.1-mini",
++        id: "auto/best-fast",
+         tier: "fast",
+-        contextWindow: 128000,
++        contextWindow: 1047576,
+         maxOutputTokens: 16384,
+-        costPerInputToken: 0.4,
+-        costPerOutputToken: 1.6,
++        costPerInputToken: 0.1,
++        costPerOutputToken: 0.4,
+         supportsTools: true,
+         supportsVision: true,
+         supportsStreaming: true,
+       },
+       {
+-        id: "gpt-4.1-nano",
++        id: "auto/best-chat",
+         tier: "cheap",
+-        contextWindow: 128000,
++        contextWindow: 1047576,
+         maxOutputTokens: 16384,
+         costPerInputToken: 0.1,
+         costPerOutputToken: 0.4,
+         supportsTools: true,
+-        supportsVision: false,
++        supportsVision: true,
+         supportsStreaming: true,
+       },
+     ],
+diff --git a/src/inference/types.ts b/src/inference/types.ts
+index 1187a9e..c6b1ed3 100644
+--- a/src/inference/types.ts
++++ b/src/inference/types.ts
+@@ -49,87 +49,87 @@ export const TASK_TIMEOUTS: Record<string, number> = {
+ 
+ export const STATIC_MODEL_BASELINE: Omit<ModelEntry, "lastSeen" | "createdAt" | "updatedAt">[] = [
+   {
+-    modelId: "gpt-5.2",
+-    provider: "openai",
+-    displayName: "GPT-5.2",
++    modelId: "auto/best-free",
++    provider: "conway",
++    displayName: "OmniRoute auto/best-free",
+     tierMinimum: "normal",
+-    costPer1kInput: 18,    // $1.75/M = 175 cents/M = 0.175 cents/1k = 17.5 hundredths ≈ 18
+-    costPer1kOutput: 140,  // $14.00/M = 1400 cents/M = 1.4 cents/1k = 140 hundredths
++    costPer1kInput: 1,
++    costPer1kOutput: 4,
+     maxTokens: 32768,
+     contextWindow: 1047576,
+     supportsTools: true,
+     supportsVision: true,
+-    parameterStyle: "max_completion_tokens",
++    parameterStyle: "max_tokens",
+     enabled: true,
+   },
+   {
+-    modelId: "gpt-4.1",
+-    provider: "openai",
+-    displayName: "GPT-4.1",
++    modelId: "auto/best-reasoning",
++    provider: "conway",
++    displayName: "OmniRoute auto/best-reasoning",
+     tierMinimum: "normal",
+-    costPer1kInput: 20,    // $2.00/M
+-    costPer1kOutput: 80,   // $8.00/M
++    costPer1kInput: 18,
++    costPer1kOutput: 140,
+     maxTokens: 32768,
+     contextWindow: 1047576,
+     supportsTools: true,
+     supportsVision: true,
+-    parameterStyle: "max_completion_tokens",
++    parameterStyle: "max_tokens",
+     enabled: true,
+   },
+   {
+-    modelId: "gpt-4.1-mini",
+-    provider: "openai",
+-    displayName: "GPT-4.1 Mini",
++    modelId: "auto/best-fast",
++    provider: "conway",
++    displayName: "OmniRoute auto/best-fast",
+     tierMinimum: "low_compute",
+-    costPer1kInput: 4,     // $0.40/M
+-    costPer1kOutput: 16,   // $1.60/M
++    costPer1kInput: 4,
++    costPer1kOutput: 16,
+     maxTokens: 16384,
+     contextWindow: 1047576,
+     supportsTools: true,
+     supportsVision: true,
+-    parameterStyle: "max_completion_tokens",
++    parameterStyle: "max_tokens",
+     enabled: true,
+   },
+   {
+-    modelId: "gpt-4.1-nano",
+-    provider: "openai",
+-    displayName: "GPT-4.1 Nano",
++    modelId: "auto/best-chat",
++    provider: "conway",
++    displayName: "OmniRoute auto/best-chat",
+     tierMinimum: "critical",
+-    costPer1kInput: 1,     // $0.10/M
+-    costPer1kOutput: 4,    // $0.40/M
++    costPer1kInput: 1,
++    costPer1kOutput: 4,
+     maxTokens: 16384,
+     contextWindow: 1047576,
+     supportsTools: true,
+-    supportsVision: false,
+-    parameterStyle: "max_completion_tokens",
++    supportsVision: true,
++    parameterStyle: "max_tokens",
+     enabled: true,
+   },
+   {
+-    modelId: "gpt-5-mini",
+-    provider: "openai",
+-    displayName: "GPT-5 Mini",
+-    tierMinimum: "low_compute",
+-    costPer1kInput: 8,     // $0.80/M
+-    costPer1kOutput: 32,   // $3.20/M
+-    maxTokens: 16384,
++    modelId: "auto/best-vision",
++    provider: "conway",
++    displayName: "OmniRoute auto/best-vision",
++    tierMinimum: "normal",
++    costPer1kInput: 4,
++    costPer1kOutput: 16,
++    maxTokens: 32768,
+     contextWindow: 1047576,
+     supportsTools: true,
+     supportsVision: true,
+-    parameterStyle: "max_completion_tokens",
++    parameterStyle: "max_tokens",
+     enabled: true,
+   },
+   {
+-    modelId: "gpt-5.3",
+-    provider: "openai",
+-    displayName: "GPT-5.3",
++    modelId: "auto/best-coding",
++    provider: "conway",
++    displayName: "OmniRoute auto/best-coding",
+     tierMinimum: "normal",
+-    costPer1kInput: 20,    // $2.00/M
+-    costPer1kOutput: 80,   // $8.00/M
++    costPer1kInput: 18,
++    costPer1kOutput: 140,
+     maxTokens: 32768,
+     contextWindow: 1047576,
+     supportsTools: true,
+     supportsVision: true,
+-    parameterStyle: "max_completion_tokens",
++    parameterStyle: "max_tokens",
+     enabled: true,
+   },
+ ];
+@@ -139,30 +139,30 @@ export const STATIC_MODEL_BASELINE: Omit<ModelEntry, "lastSeen" | "createdAt" |
+ 
+ export const DEFAULT_ROUTING_MATRIX: RoutingMatrix = {
+   high: {
+-    agent_turn: { candidates: ["gpt-5.2", "gpt-5.3"], maxTokens: 8192, ceilingCents: -1 },
+-    heartbeat_triage: { candidates: ["gpt-5-mini"], maxTokens: 2048, ceilingCents: 5 },
+-    safety_check: { candidates: ["gpt-5.2", "gpt-5.3"], maxTokens: 4096, ceilingCents: 20 },
+-    summarization: { candidates: ["gpt-5.2", "gpt-5-mini"], maxTokens: 4096, ceilingCents: 15 },
+-    planning: { candidates: ["gpt-5.2", "gpt-5.3"], maxTokens: 8192, ceilingCents: -1 },
++    agent_turn: { candidates: ["auto/best-free", "auto/best-reasoning"], maxTokens: 8192, ceilingCents: -1 },
++    heartbeat_triage: { candidates: ["auto/best-fast"], maxTokens: 2048, ceilingCents: 5 },
++    safety_check: { candidates: ["auto/best-free", "auto/best-reasoning"], maxTokens: 4096, ceilingCents: 20 },
++    summarization: { candidates: ["auto/best-free", "auto/best-fast"], maxTokens: 4096, ceilingCents: 15 },
++    planning: { candidates: ["auto/best-free", "auto/best-reasoning"], maxTokens: 8192, ceilingCents: -1 },
+   },
+   normal: {
+-    agent_turn: { candidates: ["gpt-5.2", "gpt-5-mini"], maxTokens: 4096, ceilingCents: -1 },
+-    heartbeat_triage: { candidates: ["gpt-5-mini"], maxTokens: 2048, ceilingCents: 5 },
+-    safety_check: { candidates: ["gpt-5.2", "gpt-5-mini"], maxTokens: 4096, ceilingCents: 10 },
+-    summarization: { candidates: ["gpt-5.2", "gpt-5-mini"], maxTokens: 4096, ceilingCents: 10 },
+-    planning: { candidates: ["gpt-5.2", "gpt-5-mini"], maxTokens: 4096, ceilingCents: -1 },
++    agent_turn: { candidates: ["auto/best-free", "auto/best-fast"], maxTokens: 4096, ceilingCents: -1 },
++    heartbeat_triage: { candidates: ["auto/best-fast"], maxTokens: 2048, ceilingCents: 5 },
++    safety_check: { candidates: ["auto/best-free", "auto/best-fast"], maxTokens: 4096, ceilingCents: 10 },
++    summarization: { candidates: ["auto/best-free", "auto/best-fast"], maxTokens: 4096, ceilingCents: 10 },
++    planning: { candidates: ["auto/best-free", "auto/best-fast"], maxTokens: 4096, ceilingCents: -1 },
+   },
+   low_compute: {
+-    agent_turn: { candidates: ["gpt-5-mini"], maxTokens: 4096, ceilingCents: 10 },
+-    heartbeat_triage: { candidates: ["gpt-5-mini"], maxTokens: 1024, ceilingCents: 2 },
+-    safety_check: { candidates: ["gpt-5-mini"], maxTokens: 2048, ceilingCents: 5 },
+-    summarization: { candidates: ["gpt-5-mini"], maxTokens: 2048, ceilingCents: 5 },
+-    planning: { candidates: ["gpt-5-mini"], maxTokens: 2048, ceilingCents: 5 },
++    agent_turn: { candidates: ["auto/best-fast"], maxTokens: 4096, ceilingCents: 10 },
++    heartbeat_triage: { candidates: ["auto/best-fast"], maxTokens: 1024, ceilingCents: 2 },
++    safety_check: { candidates: ["auto/best-fast"], maxTokens: 2048, ceilingCents: 5 },
++    summarization: { candidates: ["auto/best-fast"], maxTokens: 2048, ceilingCents: 5 },
++    planning: { candidates: ["auto/best-fast"], maxTokens: 2048, ceilingCents: 5 },
+   },
+   critical: {
+-    agent_turn: { candidates: ["gpt-5-mini"], maxTokens: 2048, ceilingCents: 3 },
+-    heartbeat_triage: { candidates: ["gpt-5-mini"], maxTokens: 512, ceilingCents: 1 },
+-    safety_check: { candidates: ["gpt-5-mini"], maxTokens: 1024, ceilingCents: 2 },
++    agent_turn: { candidates: ["auto/best-chat"], maxTokens: 2048, ceilingCents: 3 },
++    heartbeat_triage: { candidates: ["auto/best-chat"], maxTokens: 512, ceilingCents: 1 },
++    safety_check: { candidates: ["auto/best-chat"], maxTokens: 1024, ceilingCents: 2 },
+     summarization: { candidates: [], maxTokens: 0, ceilingCents: 0 },
+     planning: { candidates: [], maxTokens: 0, ceilingCents: 0 },
+   },
+@@ -178,9 +178,9 @@ export const DEFAULT_ROUTING_MATRIX: RoutingMatrix = {
+ // === Default Model Strategy Config ===
+ 
+ export const DEFAULT_MODEL_STRATEGY_CONFIG: ModelStrategyConfig = {
+-  inferenceModel: "gpt-5.2",
+-  lowComputeModel: "gpt-5-mini",
+-  criticalModel: "gpt-5-mini",
++  inferenceModel: "auto/best-free",
++  lowComputeModel: "auto/best-fast",
++  criticalModel: "auto/best-chat",
+   maxTokensPerTurn: 4096,
+   hourlyBudgetCents: 0,
+   sessionBudgetCents: 0,

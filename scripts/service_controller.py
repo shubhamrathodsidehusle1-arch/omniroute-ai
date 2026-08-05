@@ -5,9 +5,10 @@ import time
 import sys
 import signal
 
-WATCH_PATH = '/workspace/service_run.json'
-COMPOSE_DIR = '/workspace'
 COMPOSE_PROJECT = os.environ.get('COMPOSE_PROJECT_NAME', 'omniroute-ai')
+PROJECT_DIR = os.environ.get('COMPOSE_PROJECT_DIR', '/root/omniroute-ai')
+COMPOSE_FILE = os.environ.get('COMPOSE_FILE', os.path.join(PROJECT_DIR, 'docker-compose.yml'))
+WATCH_PATH = os.environ.get('WATCH_FILE', os.path.join(PROJECT_DIR, 'service_run.json'))
 POLL_INTERVAL = 10
 
 
@@ -21,7 +22,7 @@ def container_labels():
     """Return set of docker-compose service names for running containers."""
     result = subprocess.run(
         ['docker', 'ps', '--format', '{{.Label "com.docker.compose.service"}}', '--filter', 'status=running'],
-        capture_output=True, text=True, cwd=COMPOSE_DIR
+        capture_output=True, text=True, cwd=PROJECT_DIR
     )
     if result.returncode != 0:
         print(f'[ctrl] docker ps failed: {result.stderr.strip()}', flush=True)
@@ -31,8 +32,8 @@ def container_labels():
 def run_compose(args):
     """Run a docker compose command and surface failures instead of swallowing them."""
     result = subprocess.run(
-        ['docker', 'compose', '-p', COMPOSE_PROJECT, *args],
-        capture_output=True, text=True, cwd=COMPOSE_DIR
+        ['docker', 'compose', '-p', COMPOSE_PROJECT, '-f', COMPOSE_FILE, *args],
+        capture_output=True, text=True, cwd=PROJECT_DIR
     )
     if result.returncode != 0:
         print(f'[ctrl] compose {" ".join(args)} FAILED:', flush=True)

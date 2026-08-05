@@ -1,0 +1,6 @@
+FROM docker:27-cli
+RUN apk add --no-cache python3 git curl
+COPY scripts/service_updater.py /usr/local/bin/service_updater.py
+RUN chmod +x /usr/local/bin/service_updater.py
+ENV UPDATER_INTERVAL=3600
+CMD ["python3", "/usr/local/bin/service_updater.py"]

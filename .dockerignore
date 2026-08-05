@@ -1,0 +1,28 @@
+# Keep the Docker build context lean. Everything here is excluded from
+# `docker build .` (used by Dockerfile.openclaw / hermes / paperclip /
+# service-controller / openalice).
+
+# Secrets / runtime config
+.env
+env.json
+mcp.json
+service_run.json
+*.pem
+*.key
+
+# Runtime data (can be tens of GB)
+docker-data/
+
+# VCS
+.git
+
+# Editor / OS artifacts
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Backups / misc
+*.bak
+*.orig
+*.log
